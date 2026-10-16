@@ -1,0 +1,9 @@
+coverage.out
+/whatnow
+.superpowers/
+internal/web/dist/*
+!internal/web/dist/.gitkeep
+/whatnow-e2e
+/.demo/
+tui.log
+/dist/
