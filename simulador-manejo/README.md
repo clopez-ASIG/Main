@@ -8,4 +8,6 @@ Ejercicios: carretera libre, baches y animales, distancia de seguimiento, veloci
 Condiciones: día, noche, lluvia, lluvia de noche.
 Conductor: presets de alcohol, fatiga, distracción y reacción lenta, con deslizadores ajustables en vivo.
 
-Necesita internet para cargar Three.js desde CDN.
+Modelos: Kenney Car Kit y Nature Kit (CC0). Texturas: ambientCG (CC0). Están embebidos en `index.html`, así que abre con doble clic; la carpeta `assets` guarda los originales.
+
+Necesita internet para cargar Three.js y GLTFLoader desde CDN.
