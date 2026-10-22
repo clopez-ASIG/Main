@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<!-- ARTIFACT-START -->
+<title>Entrenamiento VR ASIG</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Paleta de marca ASIG. Un solo tema (navy) a propósito: es la interfaz de un visor. */
+:root {
+  --navy: #0C1B30; --azul: #0070C4; --celeste: #0086FC; --verde: #72D353; --amarillo: #FFD800;
+  --claro: #F1F5FA; --gris: #9FB0C4; --bg: #0C1B30; --fg: #F1F5FA;
+  --font-display: "Raleway", "Century Gothic", Arial, sans-serif;
+  --font-body: "Nunito Sans", Arial, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); overflow: hidden; }
+#app { position: fixed; inset: 0; }
+#app canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#hud { position: fixed; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
+  padding-block: max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 12px; background: rgba(12,27,48,0.88); padding: 8px 14px 8px 8px; border-radius: 10px; border-left: 4px solid var(--azul); }
+.brand img { height: 34px; border-radius: 6px; background: #fff; padding: 3px 6px; }
+.brand b { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.01em; font-size: 15px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: auto; }
+button { font: 700 14px var(--font-body); color: #fff; background: var(--azul); border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+button:hover { background: var(--celeste); }
+button:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 2px; }
+button.secondary { background: rgba(107,122,143,0.9); }
+#btn-menu { display: none; }
+#hud.in-module #btn-menu { display: inline-block; }
+#status { font-size: 13px; color: var(--gris); background: rgba(12,27,48,0.75); padding: 6px 10px; border-radius: 8px; }
+.foot { display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; }
+.hint { font-size: 12.5px; color: var(--gris); background: rgba(12,27,48,0.75); padding: 6px 10px; border-radius: 8px; max-width: 48ch; }
+body.xr #hud { display: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="hud">
+  <div class="bar">
+    <div class="brand"><img src="assets/img/logo.png" alt="ASIG"><b id="brand-title">ASIG · Entrenamiento VR</b></div>
+    <div class="actions">
+      <button id="btn-ar" hidden>Entrar en realidad mixta</button>
+      <button id="btn-vr" hidden>Entrar en VR</button>
+      <button id="btn-menu" class="secondary">Menú</button>
+      <span id="status">Cargando…</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="hint">Vista de escritorio: arrastre para mirar, rueda para acercar, clic para seleccionar. En el Quest, abra esta misma dirección en el navegador y entre en realidad mixta.</div>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+<!-- ARTIFACT-END -->
+</body>
+</html>
