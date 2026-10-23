@@ -35,6 +35,7 @@ button,input,select{font:inherit;color:inherit}
 #status{right:max(16px,env(safe-area-inset-right,0px));top:calc(16px + env(safe-area-inset-top,0px));display:grid;gap:4px;text-align:right}
 #status .row{background:rgba(16,20,24,.72);padding:4px 10px;border:1px solid var(--line);border-radius:4px;font-size:15px;display:flex;gap:10px;justify-content:space-between;min-width:170px}
 #status .row b{font-variant-numeric:tabular-nums}
+#status .row.goal{font-size:17px;border-color:var(--accent)} #status .row.goal b{font-size:21px}
 #status .ok{color:var(--good)} #status .mid{color:var(--warn)} #status .bad{color:var(--bad)}
 #lanebar{left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));width:220px;height:10px;border:1px solid var(--line);border-radius:5px;background:rgba(16,20,24,.72)}
 #lanebar i{position:absolute;top:1px;bottom:1px;width:6px;left:50%;margin-left:-3px;background:var(--accent);border-radius:3px}
@@ -123,7 +124,7 @@ th{color:var(--muted);font-weight:500}
   <div class="hud" id="speedo"><b id="spd">0</b><span>km/h</span></div>
   <div class="hud" id="status">
     <div class="row"><span>Tiempo</span><b id="st-time">0:00</b></div>
-    <div class="row" id="st-headway-row" hidden><span>Distancia</span><b id="st-headway">—</b></div>
+    <div class="row goal" id="goal-row"><span id="goal-k">Velocidad</span><b id="goal-v">—</b></div>
     <div class="row"><span>Choques</span><b id="st-crash">0</b></div>
     <div class="row"><span>Salidas</span><b id="st-off">0</b></div>
   </div>
@@ -137,7 +138,7 @@ th{color:var(--muted);font-weight:500}
       <h1>Carretera Defensiva</h1>
       <p>Simulador de carretera para entrenamiento de manejo defensivo. Esquivá, mantené el carril y mirá cómo cambia tu manejo cuando el instructor degrada al conductor.</p>
       <button class="btn" id="btn-start">Iniciar recorrido</button>
-      <div class="src" id="src-label">Teclado: flechas o WASD · Q/E mirar · 1/2 responder</div>
+      <div class="src" id="src-label">Teclado: flechas o WASD · Q/E mirar · 1/2 responder · L alumno · M sonido</div>
       <div class="src" style="font-size:11px;margin-top:8px">Auto: Ferrari 458 Italia de vicent091036 (CC BY). Escenario: Kenney (CC0). Texturas: ambientCG (CC0).</div>
     </div>
   </div>
@@ -166,6 +167,9 @@ th{color:var(--muted);font-weight:500}
       <h3>Calidad gráfica</h3>
       <div class="chips" id="quality"><button class="on" data-q="alta">Alta</button><button data-q="basica">Básica</button></div>
       <p class="note">Si el juego se traba, pasá a Básica: autos sencillos y sin sombras.</p>
+      <h3>Sonido</h3>
+      <div class="chips" id="sound"><button class="on" data-s="1">Encendido</button><button data-s="0">Apagado</button></div>
+      <p class="note">Tecla M silencia. Tecla L activa el modo alumno: oculta y bloquea la consola hasta volver a pulsarla.</p>
       <div class="rowbtns"><button class="btn" id="btn-run">Iniciar</button><button class="btn sec" id="btn-stop">Terminar</button></div>
     </section>
 
@@ -295,7 +299,7 @@ if (innerWidth < 700) consoleEl.classList.add('hidden');
 /* ---------- Input: keyboard + USB wheel ---------- */
 const input = { steer:0, throttle:0, brake:0, lookL:false, lookR:false, aPress:false, bPress:false, source:'teclado' };
 const keys = {};
-addEventListener('keydown', e => { if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return; keys[e.key.toLowerCase()] = true; if (e.key.toLowerCase()==='c' && !e.repeat) setCam(camMode==='dentro'?'detras':'dentro'); if (e.key==='1') input.aPress=true; if (e.key==='2') input.bPress=true; if (e.key===' ') e.preventDefault(); });
+addEventListener('keydown', e => { if (e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return; keys[e.key.toLowerCase()] = true; if (e.key.toLowerCase()==='c' && !e.repeat) setCam(camMode==='dentro'?'detras':'dentro'); if (e.key==='1') input.aPress=true; if (e.key==='2') input.bPress=true; if (e.key.toLowerCase()==='l' && !e.repeat) setLock(!locked); if (e.key.toLowerCase()==='m' && !e.repeat) setSound(!SND.on); if (e.key===' ') e.preventDefault(); });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 let kbSteer = 0;
 let calib = null;
@@ -543,7 +547,7 @@ const metrics = () => ({ lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0,
 let M = metrics();
 let buffer = [], driftPhase = 0, shake = 0, msgTimer = 0;
 const msgEl = $('msg');
-function msg(t, alert, dur){ msgEl.textContent=t; msgEl.classList.add('on'); msgEl.classList.toggle('alert', !!alert); msgTimer = dur||3; }
+function msg(t, alert, dur){ if (alert) sndBeep(); msgEl.textContent=t; msgEl.classList.add('on'); msgEl.classList.toggle('alert', !!alert); msgTimer = dur||3; }
 function startReaction(label){ run.events.push({label, t0:run.t, s0:input.steer, done:false}); }
 function tickReactions(){
   for (const e of run.events){ if (e.done) continue;
@@ -579,7 +583,7 @@ const EXER = {
       run.timers.ani-=dt; if (run.timers.ani<=0){ const side = Math.random()<0.5?-1:1; const o = spawn('animal', side*(ROAD_HALF+2.5), -rnd(45,75)); o.vx = -side*rnd(2.5,4); o.mesh.rotation.y = side>0? Math.PI/2 : -Math.PI/2; startReaction('Animal'); run.timers.ani=rnd(9,18); }
       if (P.density>0){ run.timers.cone=(run.timers.cone||2)-dt; if (run.timers.cone<=0){ spawn('cone', LANES[Math.floor(Math.random()*3)]+rnd(-0.8,0.8), -AHEAD+80); run.timers.cone=60/P.density*rnd(0.8,1.6);} }
   } },
-  seguimiento:{ start(){ const lane = nearestLane(car.x); const o = spawn('traffic', LANES[lane], -45, {color:0x2a64c8, kind:'taxi'}); o.speed = P.speedTarget/KMH; o.cruise=o.speed; o.brakeT=0; run.lead=o; run.timers.brake=rnd(10,18); $('st-headway-row').hidden=false; msg('Seguí al auto amarillo. Mantené 3 segundos de distancia.',false,5); }, update(dt){
+  seguimiento:{ start(){ const lane = nearestLane(car.x); const o = spawn('traffic', LANES[lane], -45, {color:0x2a64c8, kind:'taxi'}); o.speed = P.speedTarget/KMH; o.cruise=o.speed; o.brakeT=0; run.lead=o; run.timers.brake=rnd(10,18); msg('Seguí al auto amarillo. Mantené 3 segundos de distancia.',false,5); }, update(dt){
       const o = run.lead; if (!o) return;
       run.timers.brake-=dt;
       if (run.timers.brake<=0 && o.brakeT<=0){ o.brakeT=rnd(2.5,4); o.speed = o.cruise*0.35; setBrake(o.mesh,true); startReaction('Frenada del auto adelante'); run.timers.brake=rnd(12,25); }
@@ -587,13 +591,15 @@ const EXER = {
       const gap = -o.z - 4.2;
       if (gap > 160) o.speed = Math.max(o.cruise*0.6, o.speed-3*dt); else if (o.brakeT<=0) o.speed = Math.min(o.cruise, o.speed+2*dt);
       if (gap < -6) { o.z = -60; }
+      if (gap > 8) o.hit=false;
       const same = nearestLane(car.x)===nearestLane(o.x) && gap>0;
       const hw = same && car.speed>1 ? gap/car.speed : null;
-      const el=$('st-headway'); el.textContent = hw===null?'—':hw.toFixed(1)+' s'; el.className = hw===null?'':hw>=3?'ok':hw>=2?'mid':'bad';
+      setGoal('Distancia', hw===null?'—':hw.toFixed(1)+' s', hw===null?'':hw>=3?'ok':hw>=2?'mid':'bad');
       if (hw!==null){ M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; }
   } },
   frenado:{ start(){ run.frenado={order:[60,80,100].sort(()=>Math.random()-0.5), i:0, phase:'accel', hold:0, wall:null, v:0}; msg('Control crucero activo. Cuando aparezca el muro, frená.',false,5); }, update(dt){
       const f = run.frenado;
+      if (f.phase==='brake' && f.wall){ const g=-f.wall.z-2.1; setGoal('Muro', Math.max(0,g).toFixed(0)+' m', g>40?'ok':g>15?'mid':'bad'); } else setGoal('Crucero', Math.min(f.order[f.i],P.maxSpeed)+' km/h', '');
       if (f.phase==='accel'){ const v=Math.min(f.order[f.i],P.maxSpeed)/KMH; run.cruise=v; if (Math.abs(car.speed-v)<0.5){ f.hold+=dt; if (f.hold>2.5){ f.phase='wait'; f.hold=0; f.wait=rnd(2,6);} } }
       else if (f.phase==='wait'){ f.wait-=dt; if (f.wait<=0){ const w=spawn('wall',0,-75); f.wall=w; f.v=car.speed; f.phase='brake'; f.startOdo=car.odo; startReaction('Muro a '+f.order[f.i]+' km/h'); msg('¡Muro! Frená.',true,2); } }
       else if (f.phase==='brake'){
@@ -612,9 +618,10 @@ const EXER = {
       run.timers.ask-=dt;
       if (!run.lanePending && run.timers.ask<=0){ const cur=nearestLane(car.x); const opts=[cur-1,cur+1].filter(i=>i>=0&&i<3); const to=opts[Math.floor(Math.random()*opts.length)]; run.lanePending={to, from:cur, t:run.t, lookedAt:-9}; msg('Cambiá al carril '+(to<cur?'IZQUIERDO':'DERECHO')+'.',false,8); run.timers.ask=rnd(12,20); }
       if (run.lanePending){ const lp=run.lanePending; if (input.lookL&&lp.to<lp.from || input.lookR&&lp.to>lp.from) lp.lookedAt=run.t;
+        setGoal('Cambiá al', lp.to<lp.from?'izquierdo':'derecho', run.t-lp.lookedAt<3?'ok':'mid');
         const cur=nearestLane(car.x);
         if (cur===lp.to){ const blind = run.obstacles.some(o=>o.type==='traffic' && nearestLane(o.x)===lp.to && o.z>-9 && o.z<6); const looked = run.t-lp.lookedAt<3;
-          if (blind) { M.lanechg.blind++; msg('Había un auto en el punto ciego.',true,3); } else if (!looked){ M.lanechg.nolook++; msg('Cambio sin mirar por encima del hombro.',true,3);} else { M.lanechg.ok++; msg('Cambio correcto.',false,2); }
+          if (blind) { M.lanechg.blind++; sndHorn(); msg('Había un auto en el punto ciego.',true,3); } else if (!looked){ M.lanechg.nolook++; msg('Cambio sin mirar por encima del hombro.',true,3);} else { M.lanechg.ok++; msg('Cambio correcto.',false,2); }
           run.lanePending=null; }
         else if (run.t-lp.t>12){ run.lanePending=null; msg('No cambiaste de carril.',true,2); }
       }
@@ -661,27 +668,61 @@ function applyVisual(){
   $('vignette').style.opacity = P.tunnel;
 }
 
+/* ---------- Sound: synthesized with WebAudio, no files ---------- */
+const SND = { ctx:null, on:true };
+function sndInit(){
+  if (!SND.ctx){ const C=window.AudioContext||window.webkitAudioContext; if (!C) return; const c=SND.ctx=new C();
+    SND.master=c.createGain(); SND.master.gain.value=SND.on?0.6:0; SND.master.connect(c.destination);
+    const o1=c.createOscillator(), o2=c.createOscillator(), f=c.createBiquadFilter(), g=c.createGain(); o1.type='sawtooth'; o2.type='square'; f.type='lowpass'; f.frequency.value=400; g.gain.value=0; o1.connect(f); o2.connect(f); f.connect(g); g.connect(SND.master); o1.start(); o2.start(); SND.eng={o1,o2,f,g};
+    const nb=c.createBuffer(1,c.sampleRate*2,c.sampleRate), d=nb.getChannelData(0); for (let i=0;i<d.length;i++) d[i]=Math.random()*2-1; SND.noise=nb;
+    const sk=c.createBufferSource(), sf=c.createBiquadFilter(), sg=c.createGain(); sk.buffer=nb; sk.loop=true; sf.type='bandpass'; sf.frequency.value=1600; sf.Q.value=1.5; sg.gain.value=0; sk.connect(sf); sf.connect(sg); sg.connect(SND.master); sk.start(); SND.skid={g:sg};
+  }
+  if (SND.ctx.state==='suspended') SND.ctx.resume();
+}
+function sndTick(throttle, brake){
+  if (!SND.ctx) return; const c=SND.ctx, t=c.currentTime, v=car.speed;
+  const hz = 45 + v*5.5 + throttle*8; SND.eng.o1.frequency.setTargetAtTime(hz, t, 0.08); SND.eng.o2.frequency.setTargetAtTime(hz*0.5, t, 0.08);
+  SND.eng.f.frequency.setTargetAtTime(250 + throttle*900 + v*25, t, 0.1);
+  SND.eng.g.gain.setTargetAtTime(run.active ? 0.10 + throttle*0.10 + v*0.002 : 0, t, 0.1);
+  const skid = run.active && ((brake>0.5 && v>8) || car.hydro>0 || (car.offroad && v>5)) ? (car.offroad && !(brake>0.5) ? 0.10 : 0.22) : 0; SND.skid.g.gain.setTargetAtTime(skid, t, 0.05);
+}
+function sndBurst(freq, dur, gain){ if (!SND.ctx) return; const c=SND.ctx, t=c.currentTime; const s=c.createBufferSource(); s.buffer=SND.noise; const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq; const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); s.connect(f); f.connect(g); g.connect(SND.master); s.start(t); s.stop(t+dur); }
+function sndTone(freq, dur, gain, type, freq2){ if (!SND.ctx) return; const c=SND.ctx, t=c.currentTime; const o=c.createOscillator(); o.type=type||'sine'; o.frequency.setValueAtTime(freq,t); if (freq2) o.frequency.exponentialRampToValueAtTime(freq2,t+dur); const g=c.createGain(); g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur); o.connect(g); g.connect(SND.master); o.start(t); o.stop(t+dur); }
+function sndCrash(vKmh){ const k = clamp(vKmh/80, 0.3, 1); sndBurst(500, 0.6, 0.9*k); sndTone(90, 0.5, 0.8*k, 'sine', 30); }
+function sndHorn(){ sndTone(420, 0.7, 0.12, 'square'); sndTone(505, 0.7, 0.10, 'square'); }
+function sndBeep(){ sndTone(880, 0.12, 0.15, 'triangle'); }
+function sndBump(){ sndBurst(300, 0.25, 0.4); }
+function setSound(on){ SND.on=on; for (const b of $('sound').children) b.classList.toggle('on', b.dataset.s===(on?'1':'0')); if (SND.master) SND.master.gain.setTargetAtTime(on?0.6:0, SND.ctx.currentTime, 0.05); }
+for (const b of $('sound').children) b.addEventListener('click', () => setSound(b.dataset.s==='1'));
+
+/* Live objective: one HUD row that each exercise feeds; defaults to speed vs target. */
+function setGoal(k, v, level){ $('goal-k').textContent=k; const b=$('goal-v'); b.textContent=v; b.className=level||''; run.goalSet=true; }
+function goalSpeed(){ const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
+
+/* Student mode: console hidden and locked until L is pressed again. */
+let locked = false;
+function setLock(v){ locked=v; if (v) consoleEl.classList.add('hidden'); $('toggle').style.display = v?'none':''; msg(v?'Modo alumno: consola bloqueada hasta pulsar L.':'Consola liberada.', false, 3); }
+
 /* ---------- Run control ---------- */
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
-  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on');
-  car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false;
-  $('st-headway-row').hidden = ejercicio!=='seguimiento';
+  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; sndInit(); setGoal('Velocidad','—','');
+  car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
   $('start').style.display='none';
   EXER[ejercicio].start();
   $('stage').focus();
 }
-function endRun(){
-  if (!run.active) return; run.active=false; run.cruise=null; $('sms').classList.remove('on'); $('blackout').style.opacity=0;
+function endRun(reason){
+  if (!run.active) return; run.active=false; run.endReason = reason||'Tiempo cumplido'; run.cruise=null; $('sms').classList.remove('on'); $('blackout').style.opacity=0;
   const r = summarize(); showResults(r); saveHistory(r);
   for (const b of document.querySelectorAll('.tabs button')) b.classList.toggle('on', b.dataset.tab==='res');
   for (const t of document.querySelectorAll('.tab')) t.classList.toggle('on', t.id==='tab-res');
-  consoleEl.classList.remove('hidden');
+  if (!locked) consoleEl.classList.remove('hidden');
   $('start').style.display='flex';
 }
 for (const b of $('cammode').children) b.addEventListener('click', () => setCam(b.dataset.cam));
 for (const b of $('quality').children) b.addEventListener('click', () => setQuality(b.dataset.q));
-$('btn-start').addEventListener('click', startRun); $('btn-run').addEventListener('click', startRun); $('btn-stop').addEventListener('click', endRun);
+$('btn-start').addEventListener('click', startRun); $('btn-run').addEventListener('click', startRun); $('btn-stop').addEventListener('click', ()=>endRun('Detenido por el instructor'));
 $('sms-a').addEventListener('click', ()=>answerSms('A')); $('sms-b').addEventListener('click', ()=>answerSms('B'));
 function answerSms(){ const s=run.sms.open; if (!s) return; M.sms.answered++; M.sms.rt.push(run.t-s.t0); run.sms.open=null; $('sms').classList.remove('on'); }
 const SMS_TEXTS = ['¿Confirmás la reunión de las 3?', '¿Pasás por el super de regreso?', 'Oficina: ¿viste el correo del cliente?', '¿Llegás a cenar?', '¿Me mandás el número de Luis?', 'Mamá: llamame cuando podás, ¿sí?'];
@@ -692,7 +733,7 @@ function frame(){
   requestAnimationFrame(frame);
   nowT = performance.now()/1000; let dt = Math.min(0.05, nowT-last); last = nowT;
   input.aPress=false; input.bPress=false;
-  readInput(dt);
+  readInput(dt); sndTick(input.throttle, input.brake);
   if (cal) stepCalib(nowT);
   if (run.active) step(dt);
   render();
@@ -702,7 +743,7 @@ function step(dt){
   /* Driver state: microsleep and SMS */
   const asleep = run.t < run.sleep.until;
   if (P.sleep>0){ if (!asleep && run.t>run.sleep.next){ run.sleep.until = run.t + rnd(1,1.5+P.sleep*0.6); run.sleep.next = run.sleep.until + rnd(14,26)/P.sleep; } }
-  $('blackout').style.opacity = asleep?1:0;
+  $('blackout').style.opacity = (asleep || car.crashT>0)?1:0;
   if (P.sms>0 && !run.sms.open && run.t>run.sms.next){ run.sms.open={t0:run.t}; M.sms.n++; $('sms-text').textContent = SMS_TEXTS[Math.floor(Math.random()*SMS_TEXTS.length)]; $('sms').classList.add('on'); run.sms.next = run.t + rnd(10,22)/P.sms; }
   if (run.sms.open){ if (input.aPress||input.bPress) answerSms(); else if (run.t-run.sms.open.t0>9){ run.sms.open=null; $('sms').classList.remove('on'); } }
 
@@ -714,6 +755,7 @@ function step(dt){
   const drift = P.drift*0.4*(0.6*Math.sin(driftPhase)+0.4*Math.sin(driftPhase*2.3+1)+0.3*Math.sin(driftPhase*5.1));
   let steer = clamp(eff.s*P.gain + drift, -1, 1), throttle = eff.th, brake = eff.br;
   if (asleep){ throttle = 0; }
+  if (car.crashT>0){ car.crashT-=dt; throttle = 0; }
   tickReactions();
 
   /* Road condition effects */
@@ -756,17 +798,22 @@ function step(dt){
     if (hitX && hitZ){
       if (o.type==='puddle'){ if (car.hydro<=0 && car.speed>12){ car.hydro=0.9; msg('Hidroplaneo', true, 1.2);} continue; }
       if (o.hit) continue; o.hit=true;
-      if (o.type==='pothole'){ M.potholes++; shake=0.35; car.speed*=0.94; continue; }
-      if (o.type==='cone'){ M.cones++; shake=0.2; car.speed*=0.9; o.mesh.rotation.z=1.2; o.mesh.position.y=0.3; o.vx = Math.sign(o.x-car.x||1)*4; continue; }
+      if (o.type==='pothole'){ M.potholes++; shake=0.35; car.speed*=0.94; sndBump(); continue; }
+      if (o.type==='cone'){ M.cones++; shake=0.2; car.speed*=0.9; sndBump(); o.mesh.rotation.z=1.2; o.mesh.position.y=0.3; o.vx = Math.sign(o.x-car.x||1)*4; continue; }
       if (o.type==='ball'){ o.vx = 3; continue; }
-      o.impactSpeed = car.speed; M.crashes++; shake=0.8; car.speed *= 0.25;
+      o.impactSpeed = car.speed; M.crashes++; shake=0.8; const vImp = car.speed*KMH; car.speed = 0; car.crashT = 1.0; sndCrash(vImp);
       msg({animal:'Atropellaste un animal', child:'Atropellaste a una persona', traffic:'Choque con otro auto', wall:'Choque contra el muro', door:'Chocaste la puerta', parked:'Chocaste el auto estacionado', bus:'Chocaste el camión'}[o.type]||'Choque', true, 3);
-      if (o.type==='traffic' && o!==run.lead){ remove(o); }
+      if (o.type==='traffic'){ sndHorn(); if (o!==run.lead) remove(o); }
+      const hard = ['wall','traffic','bus','parked'].includes(o.type);
+      const why = o.type==='child' ? 'Atropello a una persona' : M.crashes>=3 ? 'Tres choques' : (hard && vImp>40) ? 'Choque a '+Math.round(vImp)+' km/h' : null;
+      if (why && !run.ending){ run.ending={t:run.t+1.3, reason:why}; msg(msgEl.textContent+'. Recorrido terminado.', true, 5); }
     }
   }
   EXER[ejercicio].update(dt);
+  if (!run.goalSet) goalSpeed(); run.goalSet=false;
   if (msgTimer>0){ msgTimer-=dt; if (msgTimer<=0) msgEl.classList.remove('on'); }
-  if (run.t >= P.duration) endRun();
+  if (run.ending && run.t>=run.ending.t){ endRun(run.ending.reason); return; }
+  if (run.t >= P.duration) endRun('Tiempo cumplido');
 }
 
 /* ---------- Render ---------- */
@@ -802,7 +849,7 @@ function render(){
   const rem = Math.max(0, P.duration-run.t); $('st-time').textContent = Math.floor(rem/60)+':'+String(Math.floor(rem%60)).padStart(2,'0');
   $('st-crash').textContent = M.crashes; $('st-off').textContent = M.off;
   const dev = clamp((car.x-LANES[nearestLane(car.x)])/1.8, -1, 1); $('lanedot').style.left = (50+dev*45)+'%'; $('lanedot').style.background = Math.abs(dev)<0.4?'var(--good)':Math.abs(dev)<0.8?'var(--warn)':'var(--bad)';
-  $('src-label').textContent = input.source==='timón' ? 'Timón detectado. Q/E o botones para mirar.' : 'Teclado: flechas o WASD · Q/E mirar · 1/2 responder';
+  $('src-label').textContent = input.source==='timón' ? 'Timón detectado. Q/E o botones para mirar.' : 'Teclado: flechas o WASD · Q/E mirar · 1/2 responder · L alumno · M sonido';
 }
 frame();
 window.__cd = { ASSETS, scene, renderer, get player(){ return player; }, CARMAT, ENV };
@@ -836,7 +883,7 @@ function drawCockpit(w,h){
 function summarize(){
   const rts = M.rts.filter(r=>r.rt!==null).map(r=>r.rt);
   return { estado:presetName, ej:EJ[ejercicio].n, cond:COND[condicion].n, fecha:new Date().toLocaleString('es-HN',{hour12:false}),
-    dur:Math.round(run.t), dist:Math.round(car.odo), vel: M.speed.n? M.speed.sum/M.speed.n : 0,
+    fin: run.endReason||'Tiempo cumplido', dur:Math.round(run.t), dist:Math.round(car.odo), vel: M.speed.n? M.speed.sum/M.speed.n : 0,
     lane: M.lane.n? M.lane.sum/M.lane.n : 0, offT:M.offT, off:M.off, crashes:M.crashes, cones:M.cones, potholes:M.potholes,
     rt: rts.length? rts.reduce((a,b)=>a+b,0)/rts.length : null, rtMiss: M.rts.length-rts.length, rtN:M.rts.length,
     headway: M.headway.n? M.headway.sum/M.headway.n : null, headwayMin: M.headway.n? M.headway.min : null,
@@ -847,7 +894,7 @@ const HZ = {ball:'Pelota y niño', door:'Puerta abierta', bus:'Peatón tras el c
 function showResults(r){
   const kv = [];
   const add = (k,v) => kv.push('<span>'+k+'</span><b>'+v+'</b>');
-  add('Estado del conductor', r.estado); add('Ejercicio', r.ej); add('Condición', r.cond);
+  add('Fin del recorrido', r.fin); add('Estado del conductor', r.estado); add('Ejercicio', r.ej); add('Condición', r.cond);
   add('Velocidad promedio', r.vel.toFixed(0)+' km/h'); add('Desviación de carril', r.lane.toFixed(2)+' m');
   add('Fuera de la carretera', r.offT.toFixed(1)+' s · '+r.off+' salidas'); add('Choques', r.crashes); add('Conos / baches', r.cones+' / '+r.potholes);
   if (r.rtN) add('Tiempo de reacción', (r.rt===null?'sin reacción':(r.rt*1000).toFixed(0)+' ms')+(r.rtMiss?' · '+r.rtMiss+' sin reaccionar':''));

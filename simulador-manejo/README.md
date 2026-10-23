@@ -3,6 +3,7 @@
 Simulador de carretera para entrenamiento de manejo defensivo. Un solo archivo HTML, sin instalación.
 
 Abrí `index.html` en Chrome. Conectá el timón USB, movelo, y calibralo en la pestaña Timón. Sin timón funciona con teclado (flechas o WASD, Q/E mirar, 1/2 responder mensajes).
+Tecla L: modo alumno (oculta y bloquea la consola). Tecla M: silencio. El sonido es sintetizado con WebAudio, sin archivos. Un choque detiene el auto un segundo; tres choques, uno a más de 40 km/h contra algo duro o un atropello terminan el recorrido y la causa queda en los resultados.
 
 Ejercicios: carretera libre, baches y animales, distancia de seguimiento, velocidad y frenado, punto ciego, percepción de peligro.
 Condiciones: día, noche, lluvia, lluvia de noche.
