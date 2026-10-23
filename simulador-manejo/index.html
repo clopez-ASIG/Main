@@ -54,7 +54,26 @@ button,input,select{font:inherit;color:inherit}
 #countdown{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-family:var(--display);font-size:160px;font-weight:700;color:var(--accent);text-shadow:0 4px 30px rgba(0,0,0,.6);pointer-events:none}
 #countdown.on{display:flex}
 #start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,20,24,.7)}
-#start .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:28px 32px;max-width:420px;text-align:center}
+#start .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px 28px;width:min(680px,94vw);max-height:94vh;overflow:auto;text-align:center}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 10px;text-align:left}
+.cards button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;text-align:left;display:grid;gap:3px;align-content:start}
+.cards button.on{border-color:var(--accent)}
+.cards button b{font-family:var(--display);font-size:17px;letter-spacing:.02em}
+.cards button small{color:var(--muted);line-height:1.3;font-size:12px}
+#start-cond{justify-content:center;margin-bottom:16px}
+#debrief{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,20,24,.78)}
+#debrief[hidden]{display:none}
+#stage:has(#console:not(.hidden)) #debrief{right:340px}
+#debrief .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 26px;width:min(540px,92vw);max-height:92vh;overflow:auto}
+.verdict{font-family:var(--display);font-size:32px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:14px;line-height:1.05}
+.verdict small{display:block;font-family:var(--font);font-size:14px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;margin-top:4px}
+.verdict i{width:22px;height:22px;border-radius:50%;flex:none}
+.sem{display:grid;gap:6px;margin:14px 0 16px}
+.sem div{display:grid;grid-template-columns:12px 1fr fit-content(58%);gap:10px;align-items:center;background:var(--panel2);padding:8px 10px;border-radius:6px;font-size:14px}
+.sem i{width:12px;height:12px;border-radius:50%}
+.sem b{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;line-height:1.2}
+.ok>i,i.ok{background:var(--good)} .mid>i,i.mid{background:var(--warn)} .bad>i,i.bad{background:var(--bad)}
+td i.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}
 #start h1{font-family:var(--display);font-size:44px;margin:0 0 6px;font-weight:700;letter-spacing:.02em}
 #start p{color:var(--muted);margin:0 0 18px;line-height:1.4}
 #start .src{font-size:13px;margin-top:14px;color:var(--muted)}
@@ -110,6 +129,7 @@ th{color:var(--muted);font-weight:500}
   #status .row{min-width:120px;font-size:13px}
   #msg{font-size:16px}
   #sms{width:200px;bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
+  .cards{grid-template-columns:1fr 1fr}
 }
 @media (prefers-reduced-motion:reduce){#console,#msg,#blackout{transition:none}}
 </style>
@@ -136,12 +156,15 @@ th{color:var(--muted);font-weight:500}
   <div id="start">
     <div class="card">
       <h1>Carretera Defensiva</h1>
-      <p>Simulador de carretera para entrenamiento de manejo defensivo. Esquivá, mantené el carril y mirá cómo cambia tu manejo cuando el instructor degrada al conductor.</p>
+      <p>Elegí el ejercicio y la condición del camino. El instructor degrada al conductor desde la consola.</p>
+      <div class="cards" id="start-ej"></div>
+      <div class="chips" id="start-cond"></div>
       <button class="btn" id="btn-start">Iniciar recorrido</button>
       <div class="src" id="src-label">Teclado: flechas o WASD · Q/E mirar · 1/2 responder · L alumno · M sonido</div>
       <div class="src" style="font-size:11px;margin-top:8px">Auto: Ferrari 458 Italia de vicent091036 (CC BY). Escenario: Kenney (CC0). Texturas: ambientCG (CC0).</div>
     </div>
   </div>
+  <div id="debrief" hidden><div class="card"><div class="verdict" id="db-verdict"></div><div id="db-list"></div><div class="rowbtns"><button class="btn" id="db-again">Repetir</button><button class="btn sec" id="db-menu">Cambiar ejercicio</button></div></div></div>
   <button id="toggle">Consola</button>
 
   <aside id="console">
@@ -161,6 +184,8 @@ th{color:var(--muted);font-weight:500}
       <div class="slider"><span>Velocidad objetivo <em id="v-speedTarget">80 km/h</em></span><input type="range" id="p-speedTarget" min="40" max="120" step="10" value="80"><output>80</output></div>
       <div class="slider"><span>Velocidad máxima <em id="v-maxSpeed">120 km/h</em></span><input type="range" id="p-maxSpeed" min="40" max="160" step="10" value="120"><output>120</output></div>
       <div class="slider"><span>Densidad de obstáculos <em>conos por minuto</em></span><input type="range" id="p-density" min="0" max="20" step="1" value="6"><output>6</output></div>
+      <div class="chips" id="signs"><button class="on" data-v="1">Con señales de límite</button><button data-v="0">Sin señales</button></div>
+      <p class="note">Rótulos de 40, 60 y 80 km/h en carretera libre, baches y percepción de peligro. Se mide el tiempo por encima del límite.</p>
       <h3>Cámara</h3>
       <div class="chips" id="cammode"><button class="on" data-cam="detras">Detrás del auto</button><button data-cam="dentro">Dentro del auto</button></div>
       <p class="note">También con la tecla C durante el recorrido.</p>
@@ -210,7 +235,7 @@ th{color:var(--muted);font-weight:500}
     <section class="tab" id="tab-res">
       <div id="res-current"><p class="note">Todavía no hay un recorrido terminado.</p></div>
       <h3>Historial</h3>
-      <div class="scroll"><table id="res-hist"><thead><tr><th>Estado</th><th>Ejercicio</th><th>Carril</th><th>Reacción</th><th>Choques</th><th>Salidas</th></tr></thead><tbody></tbody></table></div>
+      <div class="scroll"><table id="res-hist"><thead><tr><th></th><th>Estado</th><th>Ejercicio</th><th>Carril</th><th>Reacción</th><th>Choques</th><th>Salidas</th></tr></thead><tbody></tbody></table></div>
       <div class="rowbtns"><button class="btn sec" id="btn-copy">Copiar historial</button><button class="btn sec" id="btn-clear">Borrar historial</button></div>
     </section>
   </aside>
@@ -266,8 +291,17 @@ function buildOpts(container, dict, name, cur, onchange){
     l.append(i,t); container.append(l);
   }
 }
-buildOpts($('ejercicios'), EJ, 'ej', ejercicio, k => { ejercicio = k; if (run.active) startRun(); });
-buildOpts($('condiciones'), COND, 'cond', condicion, k => { condicion = k; applyCondition(); });
+buildOpts($('ejercicios'), EJ, 'ej', ejercicio, k => { ejercicio = k; syncStart(); if (run.active) startRun(); });
+buildOpts($('condiciones'), COND, 'cond', condicion, k => { condicion = k; applyCondition(); syncStart(); });
+function buildStart(){
+  const e=$('start-ej'); for (const k in EJ){ const b=document.createElement('button'); b.innerHTML='<b>'+EJ[k].n+'</b><small>'+EJ[k].d+'</small>'; b.addEventListener('click', ()=>{ ejercicio=k; $('ej-'+k).checked=true; syncStart(); }); e.append(b); }
+  const c=$('start-cond'); for (const k in COND){ const b=document.createElement('button'); b.textContent=COND[k].n; b.addEventListener('click', ()=>{ condicion=k; $('cond-'+k).checked=true; applyCondition(); syncStart(); }); c.append(b); }
+  syncStart();
+}
+function syncStart(){ [...$('start-ej').children].forEach((b,i)=>b.classList.toggle('on', Object.keys(EJ)[i]===ejercicio)); [...$('start-cond').children].forEach((b,i)=>b.classList.toggle('on', Object.keys(COND)[i]===condicion)); }
+buildStart();
+let signsOn = true;
+for (const b of $('signs').children) b.addEventListener('click', () => { signsOn = b.dataset.v==='1'; for (const x of $('signs').children) x.classList.toggle('on', x===b); });
 
 const fmtP = {duration:v=>v+' s', speedTarget:v=>v+' km/h', maxSpeed:v=>v+' km/h'};
 for (const k in P){
@@ -543,7 +577,7 @@ let camMode = 'detras', quality = 'alta';
 function setQuality(q){ quality = q; for (const b of $('quality').children) b.classList.toggle('on', b.dataset.q===q); renderer.shadowMap.enabled = q==='alta'; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); if (ASSETS.ready){ scene.remove(player); player = carMesh('sedan', true, 0xd9c23a); scene.add(player); applyCondition(); } }
 function setCam(m){ camMode = m; for (const b of $('cammode').children) b.classList.toggle('on', b.dataset.cam===m); cam.fov = m==='dentro'?72:62; cam.updateProjectionMatrix(); }
 const run = { active:false, t:0, cruise:null, lead:null, obstacles:[], events:[], timers:{}, lastLane:1, lastLook:-9, sleep:{next:0,until:0}, sms:{next:0, open:null}, frenado:null, lanePending:null };
-const metrics = () => ({ lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0}, hazards:[] });
+const metrics = () => ({ limit:{t:0,tot:0,over:0,n:0}, lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0}, hazards:[] });
 let M = metrics();
 let buffer = [], driftPhase = 0, shake = 0, msgTimer = 0;
 const msgEl = $('msg');
@@ -567,11 +601,13 @@ const OBJ = {
   wall(){ const g=new THREE.Group(); for (let i=-4;i<=4;i++){ const c=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.8,8), mat(0xff6a00)); c.position.set(i*1.3,0.4,0); g.add(c);} const s=box(6,1.4,0.1,mat(0xffffff)); s.position.y=2.2; g.add(s); const p=box(0.12,1.5,0.12,mat(0x999999)); p.position.y=0.75; g.add(p); return {mesh:g, w:11, l:0.8, type:'wall'}; },
   traffic(color, kind){ const kinds=['suv','van','hatchback-sports','sedan-sports','suv-luxury']; const m=carMesh(kind||kinds[Math.floor(Math.random()*kinds.length)], false, color||0xcccccc); return {mesh:m, w:1.8, l:4.2, type:'traffic'}; },
   parked(){ const m=carMesh('suv-luxury', false, 0x8899aa); const door=box(0.08,0.9,1.1,mat(0x8899aa)); door.position.set(-0.95,0.7,-0.3); m.add(door); m.userData.door=door; return {mesh:m, w:1.8, l:4.2, type:'parked'}; },
+  sign(_, lim){ const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d'); g.fillStyle='#fff'; g.beginPath(); g.arc(128,128,124,0,6.3); g.fill(); g.lineWidth=26; g.strokeStyle='#d0202a'; g.beginPath(); g.arc(128,128,106,0,6.3); g.stroke(); g.fillStyle='#111'; g.font='bold 124px "Barlow Condensed","Arial Narrow",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(String(lim),128,136); const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; const grp=new THREE.Group(); const post=box(0.12,2.6,0.12,mat(0x8a8f96)); post.position.y=1.3; const face=new THREE.Mesh(new THREE.CircleGeometry(0.62,28), new THREE.MeshBasicMaterial({map:t})); face.position.set(0,2.55,0.08); grp.add(post,face); return {mesh:grp, w:0.3, l:0.3, type:'sign', noHit:true, limit:lim}; },
   door(){ const m=box(1.1,0.9,0.08,mat(0x8899aa)); m.position.y=0.7; return {mesh:m, w:1.1, l:0.3, type:'door'}; },
   bus(){ let g = model('delivery', CAR_SCALE*1.25); if (g){ g.rotation.y=CAR_ROT; g.position.y=1.0*CAR_SCALE*1.25; const w=new THREE.Group(); w.add(g); return {mesh:w, w:2.4, l:6.8, type:'bus'}; } g=new THREE.Group(); const b=box(2.4,2.6,10,mat(0xe8c43a)); b.position.y=1.5; g.add(b); const s=box(2.5,0.6,9.5, mat(0x222222)); s.position.y=1.9; g.add(s); return {mesh:g, w:2.4, l:10, type:'bus'}; },
 };
 function spawn(kind, x, z, extra){ const o = OBJ[kind](extra && extra.color, extra && extra.kind); if (!o.flat) shadowed(o.mesh); o.x=x; o.z=z; o.vx=0; o.vz=0; o.speed=null; o.hit=false; Object.assign(o, extra||{}); o.mesh.position.set(x, o.mesh.position.y, z); scene.add(o.mesh); run.obstacles.push(o); return o; }
 function remove(o){ scene.remove(o.mesh); run.obstacles.splice(run.obstacles.indexOf(o),1); }
+function tickSigns(){ if (!signsOn || car.odo < run.nextSign) return; const opts=[40,60,80].filter(l=>l!==run.lastSign); const lim=opts[Math.floor(Math.random()*opts.length)]; run.lastSign=lim; spawn('sign', ROAD_HALF+SHOULDER+0.7, -AHEAD+80, {kind:lim}); run.nextSign = car.odo + rnd(300,500); }
 function clearWorld(){ for (const o of [...run.obstacles]) remove(o); run.lead=null; }
 function nearestLane(x){ let best=0; LANES.forEach((l,i)=>{ if (Math.abs(x-l)<Math.abs(x-LANES[best])) best=i; }); return best; }
 
@@ -697,7 +733,7 @@ for (const b of $('sound').children) b.addEventListener('click', () => setSound(
 
 /* Live objective: one HUD row that each exercise feeds; defaults to speed vs target. */
 function setGoal(k, v, level){ $('goal-k').textContent=k; const b=$('goal-v'); b.textContent=v; b.className=level||''; run.goalSet=true; }
-function goalSpeed(){ const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
+function goalSpeed(){ if (run.limit){ const v=Math.round(car.speed*KMH), ov=v-run.limit; setGoal('Límite '+run.limit, v+' km/h', ov<=2?'ok':ov<=10?'mid':'bad'); return; } const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
 
 /* Student mode: console hidden and locked until L is pressed again. */
 let locked = false;
@@ -706,7 +742,7 @@ function setLock(v){ locked=v; if (v) consoleEl.classList.add('hidden'); $('togg
 /* ---------- Run control ---------- */
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
-  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; sndInit(); setGoal('Velocidad','—','');
+  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
   car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
   $('start').style.display='none';
   EXER[ejercicio].start();
@@ -714,10 +750,10 @@ function startRun(){
 }
 function endRun(reason){
   if (!run.active) return; run.active=false; run.endReason = reason||'Tiempo cumplido'; run.cruise=null; $('sms').classList.remove('on'); $('blackout').style.opacity=0;
-  const r = summarize(); showResults(r); saveHistory(r);
+  const r = summarize(); r.sem = verdict(semaforo(r))[1]; showResults(r); saveHistory(r); showDebrief(r);
   for (const b of document.querySelectorAll('.tabs button')) b.classList.toggle('on', b.dataset.tab==='res');
   for (const t of document.querySelectorAll('.tab')) t.classList.toggle('on', t.id==='tab-res');
-  if (!locked) consoleEl.classList.remove('hidden');
+  if (!locked && innerWidth>=700) consoleEl.classList.remove('hidden');
   $('start').style.display='flex';
 }
 for (const b of $('cammode').children) b.addEventListener('click', () => setCam(b.dataset.cam));
@@ -781,6 +817,7 @@ function step(dt){
 
   /* Metrics */
   const ln = nearestLane(car.x); M.lane.sum += Math.abs(car.x-LANES[ln]); M.lane.n++; M.speed.sum+=vKmh; M.speed.n++;
+  if (run.limit){ const ov=vKmh-run.limit; M.limit.tot+=dt; if (ov>0){ M.limit.t+=dt; if (ov>M.limit.over) M.limit.over=ov; } if (ov>5 && run.t>run.limitBeep){ sndBeep(); run.limitBeep=run.t+4; } }
   if (run.sms.open){ M.sms.dev.sum += Math.abs(car.x-LANES[ln]); M.sms.dev.n++; }
 
   /* World scroll */
@@ -795,7 +832,8 @@ function step(dt){
     if (o.z>30 || Math.abs(o.x)>ROAD_HALF+SHOULDER+6 && o.vx!==0){ remove(o); continue; }
     /* collision with player box (x ±0.9, z ±2.1) */
     const hitX = Math.abs(o.x-car.x) < (o.w/2+0.9), hitZ = Math.abs(o.z) < (o.l/2+2.1);
-    if (hitX && hitZ){
+    if (o.type==='sign' && !o.passed && o.z>-1){ o.passed=true; run.limit=o.limit; M.limit.n++; msg('Límite '+o.limit+' km/h', false, 2); sndTone(660, 0.12, 0.08, 'triangle'); }
+    if (hitX && hitZ && !o.noHit){
       if (o.type==='puddle'){ if (car.hydro<=0 && car.speed>12){ car.hydro=0.9; msg('Hidroplaneo', true, 1.2);} continue; }
       if (o.hit) continue; o.hit=true;
       if (o.type==='pothole'){ M.potholes++; shake=0.35; car.speed*=0.94; sndBump(); continue; }
@@ -809,6 +847,7 @@ function step(dt){
       if (why && !run.ending){ run.ending={t:run.t+1.3, reason:why}; msg(msgEl.textContent+'. Recorrido terminado.', true, 5); }
     }
   }
+  if (ejercicio==='libre'||ejercicio==='baches'||ejercicio==='peligro') tickSigns();
   EXER[ejercicio].update(dt);
   if (!run.goalSet) goalSpeed(); run.goalSet=false;
   if (msgTimer>0){ msgTimer-=dt; if (msgTimer<=0) msgEl.classList.remove('on'); }
@@ -883,7 +922,7 @@ function drawCockpit(w,h){
 function summarize(){
   const rts = M.rts.filter(r=>r.rt!==null).map(r=>r.rt);
   return { estado:presetName, ej:EJ[ejercicio].n, cond:COND[condicion].n, fecha:new Date().toLocaleString('es-HN',{hour12:false}),
-    fin: run.endReason||'Tiempo cumplido', dur:Math.round(run.t), dist:Math.round(car.odo), vel: M.speed.n? M.speed.sum/M.speed.n : 0,
+    fin: run.endReason||'Tiempo cumplido', target:P.speedTarget, limit:M.limit, dur:Math.round(run.t), dist:Math.round(car.odo), vel: M.speed.n? M.speed.sum/M.speed.n : 0,
     lane: M.lane.n? M.lane.sum/M.lane.n : 0, offT:M.offT, off:M.off, crashes:M.crashes, cones:M.cones, potholes:M.potholes,
     rt: rts.length? rts.reduce((a,b)=>a+b,0)/rts.length : null, rtMiss: M.rts.length-rts.length, rtN:M.rts.length,
     headway: M.headway.n? M.headway.sum/M.headway.n : null, headwayMin: M.headway.n? M.headway.min : null,
@@ -891,6 +930,27 @@ function summarize(){
     params: {delay:P.delay, drift:P.drift, gain:P.gain, blur:P.blur, dbl:P.dbl, tunnel:P.tunnel, sleep:P.sleep, sms:P.sms} };
 }
 const HZ = {ball:'Pelota y niño', door:'Puerta abierta', bus:'Peatón tras el camión'};
+/* Traffic-light debrief: one row per criterion the exercise produced, worst row decides the verdict. */
+function semaforo(r){
+  const L=[]; const add=(k,v,level)=>L.push({k,v,level}); const lv=(x,a,b)=> x<=a?'ok':x<=b?'mid':'bad'; const tgt=r.target||P.speedTarget;
+  if (r.limit && r.limit.tot>0){ const pct=100*r.limit.t/r.limit.tot; add('Respeto al límite', pct.toFixed(0)+' % del tiempo arriba · máx +'+r.limit.over.toFixed(0), lv(pct,5,15)); }
+  else add('Velocidad', r.vel.toFixed(0)+' km/h · objetivo '+tgt, lv(Math.abs(r.vel-tgt),10,20));
+  add('Control de carril', r.lane.toFixed(2)+' m de desvío', lv(r.lane,0.5,0.9));
+  add('Salidas de la carretera', r.off, lv(r.off,0,1));
+  add('Choques', r.crashes, r.crashes?'bad':'ok');
+  add('Conos y baches', r.cones+' / '+r.potholes, lv(r.cones+r.potholes,0,2));
+  if (r.rtN) add('Tiempo de reacción', (r.rt===null?'sin reacción':(r.rt*1000).toFixed(0)+' ms')+(r.rtMiss?' · '+r.rtMiss+' sin reaccionar':''), (r.rt===null||r.rtMiss>0)?'bad':lv(r.rt,0.8,1.3));
+  if (r.headway!==null && r.headway!==undefined) add('Distancia de seguimiento', r.headway.toFixed(1)+' s · mín '+r.headwayMin.toFixed(1)+' s', (r.headway>=3&&r.headwayMin>=1.5)?'ok':r.headway>=2?'mid':'bad');
+  if (r.brakes.length){ const hits=r.brakes.filter(b=>b.hit).length; add('Frenado ante el muro', hits+' de '+r.brakes.length+' con choque', hits?'bad':'ok'); }
+  if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook) add('Cambios de carril', r.lanechg.ok+' bien · '+r.lanechg.blind+' punto ciego · '+r.lanechg.nolook+' sin mirar', r.lanechg.blind?'bad':r.lanechg.nolook?'mid':'ok');
+  if (r.hazards.length){ const b=r.hazards.filter(h=>h.braked).length; add('Lectura de peligros', b+' de '+r.hazards.length+' con freno anticipado', b===r.hazards.length?'ok':b?'mid':'bad'); }
+  if (r.sms.n) add('Celular', r.sms.answered+' de '+r.sms.n+' respondidos al volante', r.sms.answered?'bad':'ok');
+  return L;
+}
+function semHtml(L){ return '<div class="sem">'+L.map(x=>'<div class="'+x.level+'"><i></i><span>'+x.k+'</span><b>'+x.v+'</b></div>').join('')+'</div>'; }
+function verdict(L){ return L.some(x=>x.level==='bad')?['bad','Rojo','No cumple']:L.some(x=>x.level==='mid')?['mid','Amarillo','Cumple con observaciones']:['ok','Verde','Cumple']; }
+function showDebrief(r){ const L=semaforo(r); const [lv,name,txt]=verdict(L); $('db-verdict').innerHTML='<i class="'+lv+'"></i><div>'+name+'<small>'+txt+' · '+r.fin+' · '+r.ej+'</small></div>'; $('db-list').innerHTML=semHtml(L); $('debrief').hidden=false; }
+$('db-again').addEventListener('click', startRun); $('db-menu').addEventListener('click', ()=>{ $('debrief').hidden=true; });
 function showResults(r){
   const kv = [];
   const add = (k,v) => kv.push('<span>'+k+'</span><b>'+v+'</b>');
@@ -901,17 +961,17 @@ function showResults(r){
   if (r.headway!==null) add('Distancia de seguimiento', r.headway.toFixed(1)+' s prom · mín '+r.headwayMin.toFixed(1)+' s');
   if (r.sms.n) add('Mensajes', r.sms.answered+'/'+r.sms.n+' respondidos · desvío '+(r.sms.dev.n? (r.sms.dev.sum/r.sms.dev.n).toFixed(2):'—')+' m');
   if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook) add('Cambios de carril', r.lanechg.ok+' bien · '+r.lanechg.blind+' con auto en punto ciego · '+r.lanechg.nolook+' sin mirar');
-  let html = '<div class="kv">'+kv.join('')+'</div>';
+  let html = semHtml(semaforo(r)) + '<div class="kv">'+kv.join('')+'</div>';
   if (r.brakes.length){ html += '<h3>Frenado</h3><div class="scroll"><table><thead><tr><th>Velocidad</th><th>Resultado</th><th>Recorrido</th></tr></thead><tbody>'+r.brakes.map(b=>'<tr><td>'+b.v+' km/h</td><td>'+(b.hit?'choque a '+b.impact+' km/h':'quedó a '+b.dist.toFixed(0)+' m')+'</td><td>'+b.braked.toFixed(0)+' m</td></tr>').join('')+'</tbody></table></div>'; }
   if (r.hazards.length){ html += '<h3>Percepción de peligro</h3><div class="scroll"><table><thead><tr><th>Señal</th><th>Al verla</th><th>Al evento</th><th>Frenó antes</th></tr></thead><tbody>'+r.hazards.map(h=>'<tr><td>'+HZ[h.kind]+'</td><td>'+h.v0+' km/h</td><td>'+h.v1+' km/h</td><td>'+(h.braked?'sí':'no')+'</td></tr>').join('')+'</tbody></table></div>'; }
   $('res-current').innerHTML = html;
 }
 let history = []; try { history = JSON.parse(localStorage.getItem('cd.hist')||'[]'); } catch(e){ history=[]; }
 function saveHistory(r){ history.unshift(r); history = history.slice(0,30); try{ localStorage.setItem('cd.hist', JSON.stringify(history)); }catch(e){} renderHistory(); }
-function renderHistory(){ $('res-hist').querySelector('tbody').innerHTML = history.map(r=>'<tr><td>'+r.estado+'</td><td>'+r.ej+'</td><td>'+r.lane.toFixed(2)+' m</td><td>'+(r.rt===null||r.rt===undefined?'—':(r.rt*1000).toFixed(0)+' ms')+'</td><td>'+r.crashes+'</td><td>'+r.off+'</td></tr>').join(''); }
+function renderHistory(){ $('res-hist').querySelector('tbody').innerHTML = history.map(r=>'<tr><td><i class="dot '+(r.sem==='Rojo'?'bad':r.sem==='Amarillo'?'mid':r.sem==='Verde'?'ok':'')+'"></i></td><td>'+r.estado+'</td><td>'+r.ej+'</td><td>'+r.lane.toFixed(2)+' m</td><td>'+(r.rt===null||r.rt===undefined?'—':(r.rt*1000).toFixed(0)+' ms')+'</td><td>'+r.crashes+'</td><td>'+r.off+'</td></tr>').join(''); }
 renderHistory();
 $('btn-clear').addEventListener('click', ()=>{ history=[]; try{localStorage.removeItem('cd.hist');}catch(e){} renderHistory(); });
-$('btn-copy').addEventListener('click', ()=>{ const t = ['Fecha\tEstado\tEjercicio\tCondición\tVel prom\tDesv carril (m)\tReacción (ms)\tChoques\tSalidas'].concat(history.map(r=>[r.fecha,r.estado,r.ej,r.cond,r.vel.toFixed(0),r.lane.toFixed(2),r.rt===null?'':(r.rt*1000).toFixed(0),r.crashes,r.off].join('\t'))).join('\n'); const b=$('btn-copy'); const done=()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar historial',1500); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, ()=>{ b.textContent='No se pudo copiar'; }); });
+$('btn-copy').addEventListener('click', ()=>{ const t = ['Fecha\tSemáforo\tEstado\tEjercicio\tCondición\tVel prom\tDesv carril (m)\tReacción (ms)\tChoques\tSalidas'].concat(history.map(r=>[r.fecha,r.sem||'',r.estado,r.ej,r.cond,r.vel.toFixed(0),r.lane.toFixed(2),r.rt===null?'':(r.rt*1000).toFixed(0),r.crashes,r.off].join('\t'))).join('\n'); const b=$('btn-copy'); const done=()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar historial',1500); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, ()=>{ b.textContent='No se pudo copiar'; }); });
 })();
 </script>
 
