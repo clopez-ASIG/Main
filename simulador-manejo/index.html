@@ -158,6 +158,7 @@ th{color:var(--muted);font-weight:500}
       <h3>Recorrido</h3>
       <div class="slider"><span>Duración <em id="v-duration">90 s</em></span><input type="range" id="p-duration" min="30" max="240" step="10" value="90"><output>90</output></div>
       <div class="slider"><span>Velocidad objetivo <em id="v-speedTarget">80 km/h</em></span><input type="range" id="p-speedTarget" min="40" max="120" step="10" value="80"><output>80</output></div>
+      <div class="slider"><span>Velocidad máxima <em id="v-maxSpeed">120 km/h</em></span><input type="range" id="p-maxSpeed" min="40" max="160" step="10" value="120"><output>120</output></div>
       <div class="slider"><span>Densidad de obstáculos <em>conos por minuto</em></span><input type="range" id="p-density" min="0" max="20" step="1" value="6"><output>6</output></div>
       <h3>Cámara</h3>
       <div class="chips" id="cammode"><button class="on" data-cam="detras">Detrás del auto</button><button data-cam="dentro">Dentro del auto</button></div>
@@ -223,7 +224,7 @@ const rnd = (a,b) => a + Math.random()*(b-a);
 const KMH = 3.6;
 
 /* ---------- Parameters ---------- */
-const P = { duration:90, speedTarget:80, density:6, delay:0, drift:0, gain:1, blur:0, dbl:0, tunnel:0, sleep:0, sms:0 };
+const P = { duration:90, speedTarget:80, maxSpeed:120, density:6, delay:0, drift:0, gain:1, blur:0, dbl:0, tunnel:0, sleep:0, sms:0 };
 let presetName = 'Sobrio';
 const PRESETS = {
   'Sobrio':        {delay:0,   drift:0,   gain:1,    blur:0,   dbl:0,   tunnel:0,   sleep:0, sms:0},
@@ -264,7 +265,7 @@ function buildOpts(container, dict, name, cur, onchange){
 buildOpts($('ejercicios'), EJ, 'ej', ejercicio, k => { ejercicio = k; if (run.active) startRun(); });
 buildOpts($('condiciones'), COND, 'cond', condicion, k => { condicion = k; applyCondition(); });
 
-const fmtP = {duration:v=>v+' s', speedTarget:v=>v+' km/h'};
+const fmtP = {duration:v=>v+' s', speedTarget:v=>v+' km/h', maxSpeed:v=>v+' km/h'};
 for (const k in P){
   const el = $('p-'+k); if (!el) continue;
   const out = el.parentElement.querySelector('output');
@@ -533,7 +534,7 @@ function setBrake(m,on){ if (m.userData.tail){ m.userData.tail.emissive.setHex(o
 let player = carMesh('sedan', true, 0xd9c23a); scene.add(player);
 
 /* ---------- Car state, impairment, metrics ---------- */
-const car = { x:0, heading:0, speed:0, odo:0, offroad:false, hydro:0 };
+const car = { x:0, heading:0, speed:0, odo:0, offroad:false, hydro:0, atEdge:false };
 let camMode = 'detras', quality = 'alta';
 function setQuality(q){ quality = q; for (const b of $('quality').children) b.classList.toggle('on', b.dataset.q===q); renderer.shadowMap.enabled = q==='alta'; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); if (ASSETS.ready){ scene.remove(player); player = carMesh('sedan', true, 0xd9c23a); scene.add(player); applyCondition(); } }
 function setCam(m){ camMode = m; for (const b of $('cammode').children) b.classList.toggle('on', b.dataset.cam===m); cam.fov = m==='dentro'?72:62; cam.updateProjectionMatrix(); }
@@ -593,7 +594,7 @@ const EXER = {
   } },
   frenado:{ start(){ run.frenado={order:[60,80,100].sort(()=>Math.random()-0.5), i:0, phase:'accel', hold:0, wall:null, v:0}; msg('Control crucero activo. Cuando aparezca el muro, frená.',false,5); }, update(dt){
       const f = run.frenado;
-      if (f.phase==='accel'){ const v=f.order[f.i]/KMH; run.cruise=v; if (Math.abs(car.speed-v)<0.5){ f.hold+=dt; if (f.hold>2.5){ f.phase='wait'; f.hold=0; f.wait=rnd(2,6);} } }
+      if (f.phase==='accel'){ const v=Math.min(f.order[f.i],P.maxSpeed)/KMH; run.cruise=v; if (Math.abs(car.speed-v)<0.5){ f.hold+=dt; if (f.hold>2.5){ f.phase='wait'; f.hold=0; f.wait=rnd(2,6);} } }
       else if (f.phase==='wait'){ f.wait-=dt; if (f.wait<=0){ const w=spawn('wall',0,-75); f.wall=w; f.v=car.speed; f.phase='brake'; f.startOdo=car.odo; startReaction('Muro a '+f.order[f.i]+' km/h'); msg('¡Muro! Frená.',true,2); } }
       else if (f.phase==='brake'){
         if (input.brake>0.1) run.cruise=null;
@@ -664,7 +665,7 @@ function applyVisual(){
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
   run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on');
-  car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0;
+  car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false;
   $('st-headway-row').hidden = ejercicio!=='seguimiento';
   $('start').style.display='none';
   EXER[ejercicio].start();
@@ -725,12 +726,12 @@ function step(dt){
   let acc = throttle*4.2 - brake*8.5*brakeF - 0.25 - 0.00035*car.speed*car.speed;
   if (run.cruise!==null){ acc = clamp((run.cruise-car.speed)*1.2, -3, 3.2); if (brake>0.1 && ejercicio!=='frenado') run.cruise=null; }
   if (car.offroad){ acc -= 1.8 + 0.1*car.speed; }
-  car.speed = clamp(car.speed + acc*dt, 0, 45);
+  car.speed = clamp(car.speed + acc*dt, 0, P.maxSpeed/KMH);
   const angle = steer*0.3/(1+car.speed/12)*grip;
-  const yaw = car.speed*Math.tan(angle)/2.7;
+  const yaw = Math.max(car.speed, Math.min(car.speed*6, 2.5))*Math.tan(angle)/2.7;
   car.heading += yaw*dt; car.heading -= car.heading*1.4*dt; car.heading = clamp(car.heading,-0.6,0.6);
   car.x += car.speed*Math.sin(car.heading)*dt;
-  const edge = ROAD_HALF+SHOULDER+1.5; if (Math.abs(car.x)>edge){ car.x = Math.sign(car.x)*edge; car.heading*=-0.3; car.speed*=0.7; }
+  const edge = ROAD_HALF+SHOULDER+1.5; if (Math.abs(car.x)>edge){ const sg = Math.sign(car.x); if (!car.atEdge){ car.speed*=0.7; shake=0.3; car.atEdge=true; } car.x = sg*edge; car.heading = -sg*Math.max(Math.abs(car.heading)*0.3, 0.12); } else if (Math.abs(car.x) < edge-0.6) car.atEdge=false;
   const wasOff = car.offroad; car.offroad = Math.abs(car.x) > ROAD_HALF+0.5;
   if (car.offroad && !wasOff){ M.off++; msg('Salida de la carretera', true, 2); }
   if (car.offroad){ M.offT+=dt; shake = Math.max(shake, 0.12); }
