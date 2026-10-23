@@ -74,6 +74,17 @@ button,input,select{font:inherit;color:inherit}
 .sem b{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;line-height:1.2}
 .ok>i,i.ok{background:var(--good)} .mid>i,i.mid{background:var(--warn)} .bad>i,i.bad{background:var(--bad)}
 td i.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}
+.notes{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;line-height:1.35}
+.log{display:grid;gap:3px;font-size:13px;max-height:260px;overflow:auto}
+.log div{display:grid;grid-template-columns:40px 8px 1fr;gap:8px;align-items:center;padding:3px 6px;border-radius:4px;background:var(--panel2)}
+.log i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.log i.ok{background:var(--good)} .log i.mid{background:var(--warn)} .log i.bad{background:var(--bad)}
+.log span:first-child{font-family:var(--display);color:var(--muted);font-variant-numeric:tabular-nums}
+#debrief h3{margin:14px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+details summary{cursor:pointer;color:var(--accent);font-size:13px;margin:10px 0 6px}
+.ded{font-size:12px;color:var(--muted);display:grid;gap:2px}
+.score{font-family:var(--display);font-size:30px;font-weight:700;margin-left:auto;text-align:right;line-height:1}
+.score small{display:block;font-size:11px;color:var(--muted);font-weight:400;letter-spacing:.06em}
 #start h1{font-family:var(--display);font-size:44px;margin:0 0 6px;font-weight:700;letter-spacing:.02em}
 #start p{color:var(--muted);margin:0 0 18px;line-height:1.4}
 #start .src{font-size:13px;margin-top:14px;color:var(--muted)}
@@ -164,7 +175,7 @@ th{color:var(--muted);font-weight:500}
       <div class="src" style="font-size:11px;margin-top:8px">Auto: Ferrari 458 Italia de vicent091036 (CC BY). Escenario: Kenney (CC0). Texturas: ambientCG (CC0).</div>
     </div>
   </div>
-  <div id="debrief" hidden><div class="card"><div class="verdict" id="db-verdict"></div><div id="db-list"></div><div class="rowbtns"><button class="btn" id="db-again">Repetir</button><button class="btn sec" id="db-menu">Cambiar ejercicio</button></div></div></div>
+  <div id="debrief" hidden><div class="card"><div class="verdict" id="db-verdict"></div><div id="db-list"></div><div class="rowbtns"><button class="btn" id="db-again">Repetir</button><button class="btn sec" id="db-menu">Cambiar ejercicio</button><button class="btn sec" id="db-copy">Copiar informe</button></div></div></div>
   <button id="toggle">Consola</button>
 
   <aside id="console">
@@ -238,7 +249,7 @@ th{color:var(--muted);font-weight:500}
     <section class="tab" id="tab-res">
       <div id="res-current"><p class="note">Todavía no hay un recorrido terminado.</p></div>
       <h3>Historial</h3>
-      <div class="scroll"><table id="res-hist"><thead><tr><th></th><th>Estado</th><th>Ejercicio</th><th>Carril</th><th>Reacción</th><th>Choques</th><th>Salidas</th></tr></thead><tbody></tbody></table></div>
+      <div class="scroll"><table id="res-hist"><thead><tr><th></th><th>Pts</th><th>Estado</th><th>Ejercicio</th><th>Carril</th><th>Reacción</th><th>Choques</th><th>Salidas</th></tr></thead><tbody></tbody></table></div>
       <div class="rowbtns"><button class="btn sec" id="btn-copy">Copiar historial</button><button class="btn sec" id="btn-clear">Borrar historial</button></div>
     </section>
   </aside>
@@ -580,16 +591,20 @@ let camMode = 'detras', quality = 'alta';
 function setQuality(q){ quality = q; for (const b of $('quality').children) b.classList.toggle('on', b.dataset.q===q); renderer.shadowMap.enabled = q==='alta'; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); if (ASSETS.ready){ scene.remove(player); player = carMesh('sedan', true, 0xd9c23a); scene.add(player); applyCondition(); } }
 function setCam(m){ camMode = m; for (const b of $('cammode').children) b.classList.toggle('on', b.dataset.cam===m); cam.fov = m==='dentro'?72:62; cam.updateProjectionMatrix(); }
 const run = { active:false, t:0, cruise:null, lead:null, obstacles:[], events:[], timers:{}, lastLane:1, lastLook:-9, sleep:{next:0,until:0}, sms:{next:0, open:null}, frenado:null, lanePending:null };
-const metrics = () => ({ limit:{t:0,tot:0,over:0,n:0}, lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0, onc:0}, invadeT:0, hazards:[] });
+const metrics = () => ({ log:[], speedMax:0, speedSq:0, harsh:0, lat:{max:0,hi:0,risky:0,ep:0}, drift:{ep:0,max:0,centeredT:0,onT:0}, hwLow:0, looks:0, potSeen:0, potAvoid:0, oncClose:0, zones:[], sleeps:0, wheelT:0, steerRev:0, limit:{t:0,tot:0,over:0,n:0}, lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0, onc:0}, invadeT:0, hazards:[] });
 let M = metrics();
 let buffer = [], driftPhase = 0, shake = 0, msgTimer = 0;
 const msgEl = $('msg');
-function msg(t, alert, dur){ if (alert) sndBeep(); msgEl.textContent=t; msgEl.classList.add('on'); msgEl.classList.toggle('alert', !!alert); msgTimer = dur||3; }
+function logEv(text, level){ if (!run.active) return; const l=M.log[M.log.length-1]; if (l && l.text===text && run.t-l.t<4) return; M.log.push({t:run.t, text, level:level||''}); }
+function trackHw(hw){ const dt=run.dt||0; if (hw<2) M.hwLow+=dt; if (hw<1.5){ run.hwLowT+=dt; if (run.hwLowT>1 && run.t>run.hwCool){ run.hwCool=run.t+8; logEv('Distancia de seguimiento peligrosa: '+hw.toFixed(1)+' s','bad'); } } else run.hwLowT=0; }
+function closeZone(){ const z=run.zone; if (z && z.t>1){ const pct=100*z.tOver/z.t; logEv('Zona de '+z.limit+': máximo '+Math.round(z.max)+' km/h, '+Math.round(pct)+' % del tiempo por encima', pct>15?'bad':pct>5?'mid':'ok'); } run.zone=null; }
+function spawnPothole(spread){ const home=Math.random()<0.75; const o=spawn('pothole', LANES[home?HOME:ONC]+rnd(-spread,spread), -AHEAD+80); o.home=home; return o; }
+function msg(t, alert, dur){ if (alert) sndBeep(); logEv(t, alert?'bad':''); msgEl.textContent=t; msgEl.classList.add('on'); msgEl.classList.toggle('alert', !!alert); msgTimer = dur||3; }
 function startReaction(label){ run.events.push({label, t0:run.t, s0:input.steer, done:false}); }
 function tickReactions(){
   for (const e of run.events){ if (e.done) continue;
-    if (input.brake>0.25 || Math.abs(input.steer-e.s0)>0.2){ e.done=true; M.rts.push({label:e.label, rt:run.t-e.t0}); }
-    else if (run.t-e.t0>3){ e.done=true; M.rts.push({label:e.label, rt:null}); }
+    if (input.brake>0.25 || Math.abs(input.steer-e.s0)>0.2){ e.done=true; const rt=run.t-e.t0; M.rts.push({label:e.label, rt}); logEv('Reaccionó a '+e.label.toLowerCase()+' en '+Math.round(rt*1000)+' ms', rt<0.8?'ok':rt<1.3?'mid':'bad'); }
+    else if (run.t-e.t0>3){ e.done=true; M.rts.push({label:e.label, rt:null}); logEv('No reaccionó a '+e.label.toLowerCase(),'bad'); }
   }
 }
 
@@ -631,11 +646,11 @@ function nearestLane(x){ let best=0; LANES.forEach((l,i)=>{ if (Math.abs(x-l)<Ma
 
 /* ---------- Exercises ---------- */
 const EXER = {
-  libre:{ start(){ run.timers.cone=2; }, update(dt){ if (P.density>0){ run.timers.cone-=dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone = 60/P.density*rnd(0.6,1.4); } } } },
+  libre:{ start(){ run.timers.cone=2; }, update(dt){ if (P.density>0){ run.timers.cone-=dt; if (run.timers.cone<=0){ spawnPothole(1); run.timers.cone = 60/P.density*rnd(0.6,1.4); } } } },
   baches:{ start(){ run.timers.pot=3; run.timers.ani=8; msg('Atención a la orilla.'); }, update(dt){
-      run.timers.pot-=dt; if (run.timers.pot<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-0.9,0.9), -AHEAD+80); run.timers.pot=rnd(3,7); }
+      run.timers.pot-=dt; if (run.timers.pot<=0){ spawnPothole(0.9); run.timers.pot=rnd(3,7); }
       run.timers.ani-=dt; if (run.timers.ani<=0){ const side = Math.random()<0.5?-1:1; const o = spawn('animal', side*(ROAD_HALF+2.5), -rnd(45,75)); o.vx = -side*rnd(2.5,4); o.mesh.rotation.y = side>0? Math.PI/2 : -Math.PI/2; startReaction('Animal'); run.timers.ani=rnd(9,18); }
-      if (P.density>0){ run.timers.cone=(run.timers.cone||2)-dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone=60/P.density*rnd(0.8,1.6);} }
+      if (P.density>0){ run.timers.cone=(run.timers.cone||2)-dt; if (run.timers.cone<=0){ spawnPothole(1); run.timers.cone=60/P.density*rnd(0.8,1.6);} }
   } },
   seguimiento:{ start(){ const lane = HOME; const o = spawn('traffic', LANES[lane], -45, {color:0x2a64c8, kind:'taxi'}); o.speed = P.speedTarget/KMH; o.cruise=o.speed; o.brakeT=0; run.lead=o; run.timers.brake=rnd(10,18); msg('Seguí al auto amarillo. Mantené 3 segundos de distancia.',false,5); }, update(dt){
       const o = run.lead; if (!o) return;
@@ -650,7 +665,7 @@ const EXER = {
       const same = nearestLane(car.x)===nearestLane(o.x) && gap>0;
       const hw = same && car.speed>1 ? gap/car.speed : null;
       setGoal('Distancia', hw===null?'—':hw.toFixed(1)+' s', hw===null?'':hw>=3?'ok':hw>=2?'mid':'bad');
-      if (hw!==null){ M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; }
+      if (hw!==null){ M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; trackHw(hw); }
   } },
   frenado:{ start(){ run.frenado={order:[60,80,100].sort(()=>Math.random()-0.5), i:0, phase:'accel', hold:0, wall:null, v:0}; msg('Control crucero activo. Cuando aparezca el muro, frená.',false,5); }, update(dt){
       const f = run.frenado;
@@ -683,8 +698,9 @@ const EXER = {
         if (h.kind==='ball' && run.t-h.t0>2.2){ const c=spawn('child', ROAD_HALF+1.2, h.ref.z); c.vx=-1.6; h.fired=true; h.vEvent=car.speed; startReaction('Niño tras la pelota'); }
         if (h.kind==='door' && z>-38){ const d=spawn('door', ROAD_HALF-0.45, z-0.3); d.timer=6; h.fired=true; h.vEvent=car.speed; startReaction('Puerta abierta'); }
         if (h.kind==='bus' && z>-42){ const c=spawn('child', -(ROAD_HALF+0.6), z-4); c.vx=1.5; h.fired=true; h.vEvent=car.speed; startReaction('Peatón tras el camión'); }
+        if (h.fired) logEv(HZ[h.kind]+': '+(h.braked? 'bajó de '+Math.round(h.v0*KMH)+' a '+Math.round(h.vEvent*KMH)+' km/h antes del evento' : 'no anticipó, llegó a '+Math.round(h.vEvent*KMH)+' km/h'), h.braked?'ok':'bad');
       }
-      if (P.density>0){ run.timers.cone=(run.timers.cone||4)-dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone=60/P.density*rnd(1,2);} }
+      if (P.density>0){ run.timers.cone=(run.timers.cone||4)-dt; if (run.timers.cone<=0){ spawnPothole(1); run.timers.cone=60/P.density*rnd(1,2);} }
   } },
 };
 
@@ -740,7 +756,7 @@ for (const b of $('sound').children) b.addEventListener('click', () => setSound(
 
 /* Live objective: one HUD row that each exercise feeds; defaults to speed vs target. */
 function setGoal(k, v, level){ $('goal-k').textContent=k; const b=$('goal-v'); b.textContent=v; b.className=level||''; run.goalSet=true; }
-function goalSpeed(){ const sl = run.obstacles.find(o=>o.slow && o.z<0 && o.z>-90 && nearestLane(o.x)===nearestLane(car.x)); if (sl && car.speed>1){ const hw=(-sl.z-4.2)/car.speed; M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; setGoal('Vehículo lento', hw.toFixed(1)+' s', hw>=3?'ok':hw>=2?'mid':'bad'); return; } if (run.limit){ const v=Math.round(car.speed*KMH), ov=v-run.limit; setGoal('Límite '+run.limit, v+' km/h', ov<=2?'ok':ov<=10?'mid':'bad'); return; } const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
+function goalSpeed(){ const sl = run.obstacles.find(o=>o.slow && o.z<0 && o.z>-90 && nearestLane(o.x)===nearestLane(car.x)); if (sl && car.speed>1){ const hw=(-sl.z-4.2)/car.speed; M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; trackHw(hw); setGoal('Vehículo lento', hw.toFixed(1)+' s', hw>=3?'ok':hw>=2?'mid':'bad'); return; } if (run.limit){ const v=Math.round(car.speed*KMH), ov=v-run.limit; setGoal('Límite '+run.limit, v+' km/h', ov<=2?'ok':ov<=10?'mid':'bad'); return; } const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
 
 /* Student mode: console hidden and locked until L is pressed again. */
 let locked = false;
@@ -749,7 +765,7 @@ function setLock(v){ locked=v; if (v) consoleEl.classList.add('hidden'); $('togg
 /* ---------- Run control ---------- */
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
-  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; car.odo=0; track.segs=[]; track.end=0; run.timers.slow=18; run.timers.onc=5; run.timers.fast=14; run.lastLane=HOME; run.lastLook=-9; run.lcAt=-9; run.oncBeep=0; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
+  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; car.odo=0; track.segs=[]; track.end=0; run.timers.slow=18; run.timers.onc=5; run.timers.fast=14; run.lastLane=HOME; run.lastLook=-9; run.lcAt=-9; run.oncBeep=0; run.prevSteer=0; run.prevDS=0; run.brakeHold=0; run.brakeLogged=false; run.latCool=0; run.driftT=0; run.driftLogged=false; run.oncCool=0; run.hwLowT=0; run.hwCool=0; run.zone=null; run.pLookL=false; run.pLookR=false; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
   car.x=LANES[HOME]; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
   $('start').style.display='none';
   EXER[ejercicio].start();
@@ -757,7 +773,7 @@ function startRun(){
 }
 function endRun(reason){
   if (!run.active) return; run.active=false; run.endReason = reason||'Tiempo cumplido'; run.cruise=null; $('sms').classList.remove('on'); $('blackout').style.opacity=0;
-  const r = summarize(); r.sem = verdict(semaforo(r))[1]; showResults(r); saveHistory(r); showDebrief(r);
+  closeZone(); const r = summarize(); r.sem = verdict(semaforo(r))[1]; r.score = score(r).total; showResults(r); saveHistory(r); showDebrief(r);
   for (const b of document.querySelectorAll('.tabs button')) b.classList.toggle('on', b.dataset.tab==='res');
   for (const t of document.querySelectorAll('.tab')) t.classList.toggle('on', t.id==='tab-res');
   if (!locked && innerWidth>=700) consoleEl.classList.remove('hidden');
@@ -767,7 +783,7 @@ for (const b of $('cammode').children) b.addEventListener('click', () => setCam(
 for (const b of $('quality').children) b.addEventListener('click', () => setQuality(b.dataset.q));
 $('btn-start').addEventListener('click', startRun); $('btn-run').addEventListener('click', startRun); $('btn-stop').addEventListener('click', ()=>endRun('Detenido por el instructor'));
 $('sms-a').addEventListener('click', ()=>answerSms('A')); $('sms-b').addEventListener('click', ()=>answerSms('B'));
-function answerSms(){ const s=run.sms.open; if (!s) return; M.sms.answered++; M.sms.rt.push(run.t-s.t0); run.sms.open=null; $('sms').classList.remove('on'); }
+function answerSms(){ const s=run.sms.open; if (!s) return; M.sms.answered++; M.sms.rt.push(run.t-s.t0); logEv('Respondió el celular a '+Math.round(car.speed*KMH)+' km/h, '+(run.t-s.t0).toFixed(1)+' s después del aviso','bad'); run.sms.open=null; $('sms').classList.remove('on'); }
 const SMS_TEXTS = ['¿Confirmás la reunión de las 3?', '¿Pasás por el super de regreso?', 'Oficina: ¿viste el correo del cliente?', '¿Llegás a cenar?', '¿Me mandás el número de Luis?', 'Mamá: llamame cuando podás, ¿sí?'];
 
 /* ---------- Main loop ---------- */
@@ -782,13 +798,13 @@ function frame(){
   render();
 }
 function step(dt){
-  run.t += dt;
+  run.t += dt; run.dt = dt;
   /* Driver state: microsleep and SMS */
   const asleep = run.t < run.sleep.until;
-  if (P.sleep>0){ if (!asleep && run.t>run.sleep.next){ run.sleep.until = run.t + rnd(1,1.5+P.sleep*0.6); run.sleep.next = run.sleep.until + rnd(14,26)/P.sleep; } }
+  if (P.sleep>0){ if (!asleep && run.t>run.sleep.next){ run.sleep.until = run.t + rnd(1,1.5+P.sleep*0.6); M.sleeps++; logEv('Microsueño de '+(run.sleep.until-run.t).toFixed(1)+' s a '+Math.round(car.speed*KMH)+' km/h','mid'); run.sleep.next = run.sleep.until + rnd(14,26)/P.sleep; } }
   $('blackout').style.opacity = (asleep || car.crashT>0)?1:0;
   if (P.sms>0 && !run.sms.open && run.t>run.sms.next){ run.sms.open={t0:run.t}; M.sms.n++; $('sms-text').textContent = SMS_TEXTS[Math.floor(Math.random()*SMS_TEXTS.length)]; $('sms').classList.add('on'); run.sms.next = run.t + rnd(10,22)/P.sms; }
-  if (run.sms.open){ if (input.aPress||input.bPress) answerSms(); else if (run.t-run.sms.open.t0>9){ run.sms.open=null; $('sms').classList.remove('on'); } }
+  if (run.sms.open){ if (input.aPress||input.bPress) answerSms(); else if (run.t-run.sms.open.t0>9){ run.sms.open=null; $('sms').classList.remove('on'); logEv('Ignoró el mensaje del celular','ok'); } }
 
   /* Impairment pipeline: delay -> gain -> drift */
   const raw = asleep && buffer.length ? buffer[buffer.length-1] : {t:run.t, s:input.steer, th:input.throttle, br:input.brake};
@@ -824,7 +840,15 @@ function step(dt){
 
   /* Metrics */
   const ln = nearestLane(car.x); M.lane.sum += Math.abs(car.x-LANES[ln]); M.lane.n++; M.speed.sum+=vKmh; M.speed.n++;
-  if (run.limit){ const ov=vKmh-run.limit; M.limit.tot+=dt; if (ov>0){ M.limit.t+=dt; if (ov>M.limit.over) M.limit.over=ov; } if (ov>5 && run.t>run.limitBeep){ sndBeep(); run.limitBeep=run.t+4; } }
+  if (run.limit){ const ov=vKmh-run.limit; M.limit.tot+=dt; if (ov>0){ M.limit.t+=dt; if (ov>M.limit.over) M.limit.over=ov; } if (ov>5 && run.t>run.limitBeep){ sndBeep(); run.limitBeep=run.t+4; } const z=run.zone; if (z){ z.t+=dt; if (vKmh>z.max) z.max=vKmh; if (ov>0) z.tOver+=dt; } }
+  /* Instructor in the passenger seat: continuous observation of what the driver does, not only of what goes wrong. */
+  if (vKmh>M.speedMax) M.speedMax=vKmh; M.speedSq += vKmh*vKmh; if (input.source==='timón') M.wheelT+=dt;
+  if (input.brake>0.8 && car.speed>4){ run.brakeHold+=dt; if (run.brakeHold>0.35 && !run.brakeLogged){ run.brakeLogged=true; M.harsh++; logEv('Frenada fuerte a '+Math.round(vKmh)+' km/h','mid'); } } else { run.brakeHold=0; run.brakeLogged=false; }
+  const dS = input.steer-run.prevSteer; if (Math.abs(dS)>0.02){ if (run.prevDS!==0 && Math.sign(dS)!==run.prevDS && Math.abs(input.steer)>0.08) M.steerRev++; run.prevDS=Math.sign(dS); } run.prevSteer=input.steer;
+  const latA = car.speed*car.speed*Math.abs(curvAt(car.odo)); if (latA>M.lat.max) M.lat.max=latA; if (latA>3) M.lat.hi+=dt; if (latA>4.5){ M.lat.risky+=dt; if (run.t>run.latCool){ run.latCool=run.t+6; M.lat.ep++; logEv('Curva tomada rápido: '+Math.round(vKmh)+' km/h, '+(latA/9.81).toFixed(2)+' g lateral','bad'); } }
+  const devL = Math.abs(car.x-LANES[ln]); if (ln===HOME && !car.offroad){ M.drift.onT+=dt; if (devL<0.5) M.drift.centeredT+=dt; if (devL>M.drift.max) M.drift.max=devL; if (devL>1.0){ run.driftT+=dt; if (run.driftT>1.2 && !run.driftLogged){ run.driftLogged=true; M.drift.ep++; logEv('Se fue hacia '+(car.x<LANES[HOME]?'la línea central':'la orilla')+' ('+devL.toFixed(1)+' m)','mid'); } } else { run.driftT=0; run.driftLogged=false; } }
+  if ((input.lookL&&!run.pLookL)||(input.lookR&&!run.pLookR)) M.looks++; run.pLookL=input.lookL; run.pLookR=input.lookR;
+  if (ln===ONC){ const oc=run.obstacles.find(o=>o.oncoming && o.z<0 && o.z>-60); if (oc && run.t>run.oncCool){ run.oncCool=run.t+5; M.oncClose++; logEv('Tráfico de frente a '+Math.round(-oc.z)+' m estando en el carril contrario','bad'); } }
   if (run.sms.open){ M.sms.dev.sum += Math.abs(car.x-LANES[ln]); M.sms.dev.n++; }
 
   /* World scroll */
@@ -839,11 +863,12 @@ function step(dt){
     if (o.z>30 || (o.fast && o.z<-160) || Math.abs(o.x)>ROAD_HALF+SHOULDER+6 && o.vx!==0){ remove(o); continue; }
     /* collision with player box (x ±0.9, z ±2.1) */
     const hitX = Math.abs(o.x-car.x) < (o.w/2+0.9), hitZ = Math.abs(o.z) < (o.l/2+2.1);
-    if (o.type==='sign' && !o.passed && o.z>-1){ o.passed=true; run.limit=o.limit; M.limit.n++; msg('Límite '+o.limit+' km/h', false, 2); sndTone(660, 0.12, 0.08, 'triangle'); }
+    if (o.type==='sign' && !o.passed && o.z>-1){ o.passed=true; closeZone(); run.limit=o.limit; M.limit.n++; run.zone={limit:o.limit, t:0, tOver:0, max:0}; M.zones.push(run.zone); msg('Límite '+o.limit+' km/h', false, 2); sndTone(660, 0.12, 0.08, 'triangle'); }
+    if (o.type==='pothole' && o.home && !o.done && o.z>2.5){ o.done=true; M.potSeen++; M.potAvoid++; }
     if (hitX && hitZ && !o.noHit){
       if (o.type==='puddle'){ if (car.hydro<=0 && car.speed>12){ car.hydro=0.9; msg('Hidroplaneo', true, 1.2);} continue; }
       if (o.hit) continue; o.hit=true;
-      if (o.type==='pothole'){ M.potholes++; shake=0.5; car.speed*=0.9; car.heading += (Math.random()<0.5?-1:1)*0.05; sndBump(); continue; }
+      if (o.type==='pothole'){ M.potholes++; if (o.home && !o.done){ o.done=true; M.potSeen++; } logEv('Cayó en un bache a '+Math.round(car.speed*KMH)+' km/h','mid'); shake=0.5; car.speed*=0.9; car.heading += (Math.random()<0.5?-1:1)*0.05; sndBump(); continue; }
       if (o.type==='cone'){ M.cones++; shake=0.2; car.speed*=0.9; sndBump(); o.mesh.rotation.z=1.2; o.mesh.position.y=0.3; o.vx = Math.sign(o.x-car.x||1)*4; continue; }
       if (o.type==='ball'){ o.vx = 3; continue; }
       o.impactSpeed = car.speed; M.crashes++; shake=0.8; const vImp = (car.speed + (o.oncoming? -o.speed : 0))*KMH; car.speed = 0; car.crashT = 1.0; sndCrash(vImp);
@@ -947,6 +972,7 @@ function summarize(){
     lane: M.lane.n? M.lane.sum/M.lane.n : 0, offT:M.offT, off:M.off, invadeT:M.invadeT, crashes:M.crashes, cones:M.cones, potholes:M.potholes,
     rt: rts.length? rts.reduce((a,b)=>a+b,0)/rts.length : null, rtMiss: M.rts.length-rts.length, rtN:M.rts.length,
     headway: M.headway.n? M.headway.sum/M.headway.n : null, headwayMin: M.headway.n? M.headway.min : null,
+    log:M.log, speedMax:M.speedMax, speedStd: M.speed.n? Math.sqrt(Math.max(0, M.speedSq/M.speed.n - Math.pow(M.speed.sum/M.speed.n,2))) : 0, harsh:M.harsh, lat:M.lat, drift:M.drift, hwLow:M.hwLow, looks:M.looks, potSeen:M.potSeen, potAvoid:M.potAvoid, oncClose:M.oncClose, zones:M.zones.map(z=>({limit:z.limit,t:z.t,tOver:z.tOver,max:z.max})), sleeps:M.sleeps, wheelT:M.wheelT, steerRev:M.steerRev,
     sms: M.sms, brakes: M.brakes, lanechg: M.lanechg, hazards: M.hazards.filter(h=>h.fired).map(h=>({kind:h.kind, v0:Math.round(h.v0*KMH), v1:Math.round(h.vEvent*KMH), braked:h.braked})),
     params: {delay:P.delay, drift:P.drift, gain:P.gain, blur:P.blur, dbl:P.dbl, tunnel:P.tunnel, sleep:P.sleep, sms:P.sms} };
 }
@@ -971,8 +997,51 @@ function semaforo(r){
 }
 function semHtml(L){ return '<div class="sem">'+L.map(x=>'<div class="'+x.level+'"><i></i><span>'+x.k+'</span><b>'+x.v+'</b></div>').join('')+'</div>'; }
 function verdict(L){ return L.some(x=>x.level==='bad')?['bad','Rojo','No cumple']:L.some(x=>x.level==='mid')?['mid','Amarillo','Cumple con observaciones']:['ok','Verde','Cumple']; }
-function showDebrief(r){ const L=semaforo(r); const [lv,name,txt]=verdict(L); $('db-verdict').innerHTML='<i class="'+lv+'"></i><div>'+name+'<small>'+txt+' · '+r.fin+' · '+r.ej+'</small></div>'; $('db-list').innerHTML=semHtml(L); $('debrief').hidden=false; }
-$('db-again').addEventListener('click', startRun); $('db-menu').addEventListener('click', ()=>{ $('debrief').hidden=true; });
+/* Score: 100 minus transparent deductions, each one named so the instructor can defend or override it. */
+function score(r){
+  const D=[]; const ded=(pts,why)=>{ if (pts>0) D.push({pts:Math.round(pts*10)/10, why}); };
+  ded(r.crashes*25,'choques'); ded(r.fin==='Atropello a una persona'?15:0,'atropello'); ded(r.off*10,'salidas de la carretera');
+  ded(Math.min(20,(r.invadeT||0)*3),'carril contrario sin rebasar'); ded(((r.lanechg.onc||0)+r.lanechg.blind)*15,'rebases inseguros'); ded((r.oncClose||0)*5,'cerca de tráfico de frente');
+  if (r.limit && r.limit.tot>0){ const pct=100*r.limit.t/r.limit.tot; ded(Math.min(15,pct*0.3),'exceso de velocidad'); ded(r.limit.over>20?5:0,'exceso mayor a 20 km/h'); }
+  ded(r.potholes*3,'baches'); ded(Math.min(10,(r.harsh||0)*2),'frenadas fuertes'); ded(Math.min(10,((r.lat&&r.lat.ep)||0)*3),'curvas rápidas'); ded(Math.min(15,(r.hwLow||0)*0.5),'distancia de seguimiento corta');
+  ded(r.rtMiss*10,'sin reacción'); ded(r.rt!==null&&r.rt>1.3?5:0,'reacción lenta'); ded(r.sms.answered*10,'celular al volante'); ded(Math.min(10,(r.drift&&r.drift.ep)||0),'desvíos dentro del carril'); ded((r.hazards||[]).filter(h=>!h.braked).length*5,'peligros no anticipados');
+  return { total: Math.max(0, Math.round(100 - D.reduce((a,b)=>a+b.pts,0))), D };
+}
+/* Instructor notes: plain sentences derived from the metrics, worst things first. */
+function notes(r){
+  const N=[]; const mins=Math.max(0.5, r.dur/60); const traffic = r.ej!==EJ.frenado.n;
+  if (r.crashes) N.push(r.crashes+(r.crashes>1?' choques':' choque')+'. Cualquier choque reprueba el recorrido; revisar en la bitácora qué pasó antes de cada uno.');
+  if ((r.lanechg.onc||0)) N.push('Salió a rebasar con tráfico de frente '+r.lanechg.onc+(r.lanechg.onc>1?' veces':' vez')+'. Es el error más grave de la carretera de dos carriles: solo se rebasa con la vía libre hasta donde alcanza la vista.');
+  if (r.lanechg.blind) N.push('Salió al carril contrario mientras un auto lo rebasaba ('+r.lanechg.blind+'). Espejo antes de la línea, siempre.');
+  if ((r.invadeT||0)>3) N.push('Pisa el carril contrario sin razón: '+r.invadeT.toFixed(0)+' s en total.');
+  if (r.off) N.push(r.off+(r.off>1?' salidas':' salida')+' de la vía ('+r.offT.toFixed(0)+' s fuera). '+(r.lat&&r.lat.ep?'Coincide con curvas tomadas rápido.':'Revisar si fue por distracción o por esquivar.'));
+  if (r.limit && r.limit.tot>0){ const pct=100*r.limit.t/r.limit.tot; if (pct>15) N.push('Excede el límite con frecuencia: '+pct.toFixed(0)+' % del tiempo, hasta +'+r.limit.over.toFixed(0)+' km/h. Debe bajar antes del rótulo, no después.'); else if (pct>5) N.push('Excesos ocasionales de velocidad ('+pct.toFixed(0)+' % del tiempo, máximo +'+r.limit.over.toFixed(0)+' km/h).'); else N.push('Respeta los límites de velocidad.'); }
+  else N.push('Velocidad promedio '+r.vel.toFixed(0)+' km/h frente a un objetivo de '+(r.target||P.speedTarget)+'; máxima '+(r.speedMax||0).toFixed(0)+'.');
+  if ((r.speedStd||0)>12) N.push('Velocidad irregular (±'+r.speedStd.toFixed(0)+' km/h): acelera y frena más de lo que la vía pide.');
+  if (r.lat && r.lat.ep) N.push('Entra rápido a las curvas ('+r.lat.ep+(r.lat.ep>1?' veces':' vez')+', hasta '+(r.lat.max/9.81).toFixed(2)+' g). La velocidad se reduce antes de la curva, no adentro.'); else if (r.lat && r.lat.max>0.5) N.push('Toma las curvas a velocidad adecuada (máximo '+(r.lat.max/9.81).toFixed(2)+' g lateral).');
+  if (r.drift && r.drift.onT>5){ const pc=100*r.drift.centeredT/r.drift.onT; if (pc>=80) N.push('Buen centrado en el carril ('+pc.toFixed(0)+' % del tiempo).'); else if (pc>=60) N.push('Centrado irregular: solo '+pc.toFixed(0)+' % del tiempo en el centro del carril.'); else N.push('Conduce descentrado la mayor parte del tiempo ('+pc.toFixed(0)+' % centrado, hasta '+r.drift.max.toFixed(1)+' m fuera del centro).'); if (r.drift.ep>=3) N.push('Tiende a irse hacia la línea: '+r.drift.ep+' desvíos sostenidos.'); }
+  if (r.headway!==null && r.headway!==undefined){ if ((r.hwLow||0)>5) N.push('Va pegado al de adelante: '+r.hwLow.toFixed(0)+' s por debajo de 2 segundos, mínimo '+r.headwayMin.toFixed(1)+' s.'); else N.push('Mantiene distancia de seguimiento (promedio '+r.headway.toFixed(1)+' s, mínimo '+r.headwayMin.toFixed(1)+' s).'); }
+  if (r.lanechg.ok && !(r.lanechg.onc||0) && !r.lanechg.blind) N.push('Rebases con vía libre: '+r.lanechg.ok+'.');
+  if (traffic && r.dur>40 && (r.looks||0)/mins<1) N.push('Casi no mira a los lados ni al espejo: '+(r.looks||0)+' miradas en '+mins.toFixed(0)+' min.');
+  if ((r.harsh||0)>=3) N.push('Frena tarde y fuerte ('+r.harsh+' frenadas fuertes). Anticipar: levantar el pie antes.');
+  if (r.brakes.length){ const hits=r.brakes.filter(b=>b.hit); if (hits.length) N.push('Chocó el muro a '+hits.map(b=>b.v).join(' y ')+' km/h: la distancia de frenado a esa velocidad es mayor de lo que calculó.'); else N.push('Frenó a tiempo ante el muro en las '+r.brakes.length+' pruebas; quedó a '+r.brakes.map(b=>b.dist.toFixed(0)).join(', ')+' m.'); }
+  if ((r.wheelT||0)>r.dur*0.6 && r.steerRev/mins>30) N.push('Corrige el timón constantemente ('+Math.round(r.steerRev/mins)+' correcciones por minuto). Manos más quietas, mirada más lejos.');
+  if (r.potSeen) N.push('Esquivó '+r.potAvoid+' de '+r.potSeen+' baches de su carril'+(r.potholes>r.potSeen-r.potAvoid?' y cayó en '+r.potholes+' en total':'')+'.');
+  if (r.hazards.length){ const b=r.hazards.filter(h=>h.braked).length; if (b===r.hazards.length) N.push('Lee las señales tempranas: bajó la velocidad antes de cada evento.'); else if (b) N.push('Anticipó '+b+' de '+r.hazards.length+' peligros.'); else N.push('No anticipa: llegó a los eventos sin bajar la velocidad.'); }
+  if (r.rtN) N.push('Reacción promedio '+(r.rt===null?'sin medir':(r.rt*1000).toFixed(0)+' ms')+(r.rtMiss?'; '+r.rtMiss+' sin reaccionar':'')+'.');
+  if (r.sms.n) N.push(r.sms.answered? 'Respondió el celular '+r.sms.answered+(r.sms.answered>1?' veces':' vez')+' al volante'+(r.sms.dev.n?'; desvío de carril de '+(r.sms.dev.sum/r.sms.dev.n).toFixed(2)+' m mientras escribía':'')+'.' : 'Ignoró los '+r.sms.n+' mensajes del celular.');
+  if (r.sleeps) N.push(r.sleeps+(r.sleeps>1?' microsueños':' microsueño')+' durante el recorrido.');
+  if (r.estado!=='Sobrio') N.push('Recorrido con conductor degradado ('+r.estado+'). Comparar con el recorrido sobrio del mismo ejercicio.');
+  return N;
+}
+const mmss = t => Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+function logHtml(L){ return '<div class="log">'+L.map(e=>'<div><span>'+mmss(e.t)+'</span><i class="'+e.level+'"></i><span>'+e.text+'</span></div>').join('')+'</div>'; }
+function reportHtml(r){ const sc=score(r); return semHtml(semaforo(r)) + '<h3>Observaciones del instructor</h3><ul class="notes">'+notes(r).map(n=>'<li>'+n+'</li>').join('')+'</ul>' + '<details><summary>Bitácora ('+(r.log||[]).length+' anotaciones)</summary>'+logHtml(r.log||[])+'</details>' + '<details><summary>Cómo se calculó el puntaje '+sc.total+'/100</summary><div class="ded">'+(sc.D.length? sc.D.map(d=>'<span>−'+d.pts+' '+d.why+'</span>').join('') : '<span>Sin deducciones.</span>')+'</div></details>'; }
+function reportText(r){ const L=semaforo(r), [lv,name,txt]=verdict(L), sc=score(r); const lines=['CARRETERA DEFENSIVA · INFORME DEL RECORRIDO', r.fecha, 'Ejercicio: '+r.ej+' · Condición: '+r.cond+' · Conductor: '+r.estado, 'Fin: '+r.fin+' · Duración '+mmss(r.dur)+' · '+r.dist+' m · Velocidad promedio '+r.vel.toFixed(0)+' km/h, máxima '+(r.speedMax||0).toFixed(0), '', 'RESULTADO: '+name.toUpperCase()+' · '+txt+' · Puntaje '+sc.total+'/100', '', 'SEMÁFORO'].concat(L.map(x=>'  ['+(x.level==='ok'?'verde':x.level==='mid'?'amarillo':'rojo')+'] '+x.k+': '+x.v), ['', 'OBSERVACIONES DEL INSTRUCTOR'], notes(r).map(n=>'  · '+n), ['', 'DEDUCCIONES'], sc.D.length? sc.D.map(d=>'  −'+d.pts+' '+d.why) : ['  ninguna'], ['', 'BITÁCORA'], (r.log||[]).map(e=>'  '+mmss(e.t)+'  '+e.text)); return lines.join('\n'); }
+let lastReport = null;
+function copyReport(btn){ if (!lastReport) return; const t=reportText(lastReport); const done=()=>{ const o=btn.textContent; btn.textContent='Copiado'; setTimeout(()=>btn.textContent=o,1500); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, ()=>{ btn.textContent='No se pudo copiar'; }); }
+function showDebrief(r){ lastReport=r; const L=semaforo(r); const [lv,name,txt]=verdict(L); const sc=score(r); $('db-verdict').innerHTML='<i class="'+lv+'"></i><div>'+name+'<small>'+txt+' · '+r.fin+' · '+r.ej+'</small></div><div class="score">'+sc.total+'<small>PUNTAJE /100</small></div>'; $('db-list').innerHTML=reportHtml(r); $('debrief').hidden=false; }
+$('db-again').addEventListener('click', startRun); $('db-menu').addEventListener('click', ()=>{ $('debrief').hidden=true; }); $('db-copy').addEventListener('click', e=>copyReport(e.currentTarget));
 function showResults(r){
   const kv = [];
   const add = (k,v) => kv.push('<span>'+k+'</span><b>'+v+'</b>');
@@ -983,17 +1052,18 @@ function showResults(r){
   if (r.headway!==null) add('Distancia de seguimiento', r.headway.toFixed(1)+' s prom · mín '+r.headwayMin.toFixed(1)+' s');
   if (r.sms.n) add('Mensajes', r.sms.answered+'/'+r.sms.n+' respondidos · desvío '+(r.sms.dev.n? (r.sms.dev.sum/r.sms.dev.n).toFixed(2):'—')+' m');
   if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook+(r.lanechg.onc||0)) add('Rebases', r.lanechg.ok+' con vía libre · '+(r.lanechg.onc||0)+' con tráfico de frente · '+r.lanechg.blind+' con auto rebasándote');
-  let html = semHtml(semaforo(r)) + '<div class="kv">'+kv.join('')+'</div>';
+  let html = reportHtml(r) + '<h3>Datos</h3><div class="kv">'+kv.join('')+'</div>';
   if (r.brakes.length){ html += '<h3>Frenado</h3><div class="scroll"><table><thead><tr><th>Velocidad</th><th>Resultado</th><th>Recorrido</th></tr></thead><tbody>'+r.brakes.map(b=>'<tr><td>'+b.v+' km/h</td><td>'+(b.hit?'choque a '+b.impact+' km/h':'quedó a '+b.dist.toFixed(0)+' m')+'</td><td>'+b.braked.toFixed(0)+' m</td></tr>').join('')+'</tbody></table></div>'; }
   if (r.hazards.length){ html += '<h3>Percepción de peligro</h3><div class="scroll"><table><thead><tr><th>Señal</th><th>Al verla</th><th>Al evento</th><th>Frenó antes</th></tr></thead><tbody>'+r.hazards.map(h=>'<tr><td>'+HZ[h.kind]+'</td><td>'+h.v0+' km/h</td><td>'+h.v1+' km/h</td><td>'+(h.braked?'sí':'no')+'</td></tr>').join('')+'</tbody></table></div>'; }
-  $('res-current').innerHTML = html;
+  html += '<div class="rowbtns" style="margin-top:10px"><button class="btn sec" id="res-copy">Copiar informe</button></div>';
+  $('res-current').innerHTML = html; lastReport=r; $('res-copy').addEventListener('click', e=>copyReport(e.currentTarget));
 }
 let history = []; try { history = JSON.parse(localStorage.getItem('cd.hist')||'[]'); } catch(e){ history=[]; }
 function saveHistory(r){ history.unshift(r); history = history.slice(0,30); try{ localStorage.setItem('cd.hist', JSON.stringify(history)); }catch(e){} renderHistory(); }
-function renderHistory(){ $('res-hist').querySelector('tbody').innerHTML = history.map(r=>'<tr><td><i class="dot '+(r.sem==='Rojo'?'bad':r.sem==='Amarillo'?'mid':r.sem==='Verde'?'ok':'')+'"></i></td><td>'+r.estado+'</td><td>'+r.ej+'</td><td>'+r.lane.toFixed(2)+' m</td><td>'+(r.rt===null||r.rt===undefined?'—':(r.rt*1000).toFixed(0)+' ms')+'</td><td>'+r.crashes+'</td><td>'+r.off+'</td></tr>').join(''); }
+function renderHistory(){ $('res-hist').querySelector('tbody').innerHTML = history.map(r=>'<tr><td><i class="dot '+(r.sem==='Rojo'?'bad':r.sem==='Amarillo'?'mid':r.sem==='Verde'?'ok':'')+'"></i></td><td>'+(r.score===undefined?'—':r.score)+'</td><td>'+r.estado+'</td><td>'+r.ej+'</td><td>'+r.lane.toFixed(2)+' m</td><td>'+(r.rt===null||r.rt===undefined?'—':(r.rt*1000).toFixed(0)+' ms')+'</td><td>'+r.crashes+'</td><td>'+r.off+'</td></tr>').join(''); }
 renderHistory();
 $('btn-clear').addEventListener('click', ()=>{ history=[]; try{localStorage.removeItem('cd.hist');}catch(e){} renderHistory(); });
-$('btn-copy').addEventListener('click', ()=>{ const t = ['Fecha\tSemáforo\tEstado\tEjercicio\tCondición\tVel prom\tDesv carril (m)\tReacción (ms)\tChoques\tSalidas'].concat(history.map(r=>[r.fecha,r.sem||'',r.estado,r.ej,r.cond,r.vel.toFixed(0),r.lane.toFixed(2),r.rt===null?'':(r.rt*1000).toFixed(0),r.crashes,r.off].join('\t'))).join('\n'); const b=$('btn-copy'); const done=()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar historial',1500); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, ()=>{ b.textContent='No se pudo copiar'; }); });
+$('btn-copy').addEventListener('click', ()=>{ const t = ['Fecha\tSemáforo\tPuntaje\tEstado\tEjercicio\tCondición\tVel prom\tDesv carril (m)\tReacción (ms)\tChoques\tSalidas'].concat(history.map(r=>[r.fecha,r.sem||'',r.score===undefined?'':r.score,r.estado,r.ej,r.cond,r.vel.toFixed(0),r.lane.toFixed(2),r.rt===null?'':(r.rt*1000).toFixed(0),r.crashes,r.off].join('\t'))).join('\n'); const b=$('btn-copy'); const done=()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar historial',1500); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, ()=>{ b.textContent='No se pudo copiar'; }); });
 })();
 </script>
 
