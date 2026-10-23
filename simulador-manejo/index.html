@@ -183,10 +183,10 @@ th{color:var(--muted);font-weight:500}
       <div class="slider"><span>Duración <em id="v-duration">90 s</em></span><input type="range" id="p-duration" min="30" max="240" step="10" value="90"><output>90</output></div>
       <div class="slider"><span>Velocidad objetivo <em id="v-speedTarget">80 km/h</em></span><input type="range" id="p-speedTarget" min="40" max="120" step="10" value="80"><output>80</output></div>
       <div class="slider"><span>Velocidad máxima <em id="v-maxSpeed">120 km/h</em></span><input type="range" id="p-maxSpeed" min="40" max="160" step="10" value="120"><output>120</output></div>
-      <div class="slider"><span>Densidad de obstáculos <em>conos por minuto</em></span><input type="range" id="p-density" min="0" max="20" step="1" value="6"><output>6</output></div>
+      <div class="slider"><span>Densidad de baches <em>baches por minuto</em></span><input type="range" id="p-density" min="0" max="20" step="1" value="6"><output>6</output></div>
       <div class="chips" id="signs"><button class="on" data-v="1">Con señales de límite</button><button data-v="0">Sin señales</button></div>
-      <div class="chips" id="slowtraffic"><button class="on" data-v="1">Con tráfico lento</button><button data-v="0">Sin tráfico lento</button></div>
-      <p class="note">Rótulos de 40, 60 y 80 km/h en carretera libre, baches y percepción de peligro. Se mide el tiempo por encima del límite. El tráfico lento aparece en tu carril cada 25 a 45 s: seguilo a 3 segundos o rebasalo mirando por encima del hombro.</p>
+      <div class="chips" id="slowtraffic"><button class="on" data-v="1">Con tráfico</button><button data-v="0">Sin tráfico</button></div>
+      <p class="note">Rótulos de 40, 60 y 80 km/h en carretera libre, baches y percepción de peligro. Se mide el tiempo por encima del límite. Carretera de dos carriles: tráfico de frente en el izquierdo y vehículos lentos en el tuyo. Seguilos a 3 segundos o rebasalos solo con la vía libre.</p>
       <h3>Cámara</h3>
       <div class="chips" id="cammode"><button class="on" data-cam="detras">Detrás del auto</button><button data-cam="dentro">Dentro del auto</button></div>
       <p class="note">También con la tecla C durante el recorrido.</p>
@@ -268,11 +268,11 @@ const PRESETS = {
   'Reacción lenta':{delay:400, drift:0,   gain:1,    blur:0,   dbl:0,   tunnel:0,   sleep:0, sms:0},
 };
 const EJ = {
-  libre:       {n:'Carretera libre', d:'Conos al azar. Mantené el carril y esquivá.'},
+  libre:       {n:'Carretera libre', d:'Baches al azar y tráfico de frente. Mantené tu carril y esquivá.'},
   baches:      {n:'Baches y animales', d:'Baches en el carril y animales que cruzan con poco aviso.'},
   seguimiento: {n:'Distancia de seguimiento', d:'Seguí al auto amarillo. Frena de golpe sin avisar. Regla de los 3 segundos.'},
   frenado:     {n:'Velocidad y frenado', d:'Control crucero a 60, 80 y 100 km/h. Aparece un muro: frená. Se mide dónde quedás.'},
-  puntociego:  {n:'Punto ciego', d:'Tráfico al lado. Se te pide cambiar de carril. Mirá el espejo y por encima del hombro (Q/E).'},
+  puntociego:  {n:'Rebase y punto ciego', d:'Autos lentos adelante, tráfico de frente y autos que te rebasan. Salí a rebasar solo con la vía libre y mirá el espejo.'},
   peligro:     {n:'Percepción de peligro', d:'Señales tempranas: una pelota, una puerta, un camión parado. Se mide si bajaste la velocidad antes del evento.'},
 };
 const COND = {
@@ -432,7 +432,7 @@ function renderCalib(){
 renderCalib();
 
 /* ---------- 3D world ---------- */
-const LANES = [-3.6, 0, 3.6], ROAD_HALF = 5.4, SHOULDER = 2.2, WORLD_LEN = 420, AHEAD = 360;
+const LANES = [-1.8, 1.8], ONC = 0, HOME = 1, ROAD_HALF = 3.6, SHOULDER = 2.2, WORLD_LEN = 420, AHEAD = 360;
 const glCanvas = $('gl'), fxCanvas = $('fx'), fx = fxCanvas.getContext('2d');
 const renderer = new THREE.WebGLRenderer({canvas:glCanvas, antialias:false, powerPreference:'low-power'});
 renderer.setPixelRatio(1); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
@@ -514,7 +514,7 @@ const mat = (c, o) => new THREE.MeshLambertMaterial(Object.assign({color:c, side
 const box = (w,h,d,m) => new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m);
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, WORLD_LEN+200), mat(0x4e6b3a)); ground.receiveShadow = true; ground.rotation.x = -Math.PI/2; ground.position.set(0,-0.02,-AHEAD/2+40); scene.add(ground);
-const roadTex = (() => { const c=document.createElement('canvas'); c.width=256; c.height=256; const g=c.getContext('2d'); g.fillStyle='#3a3d42'; g.fillRect(0,0,256,256); g.fillStyle='#d8d4c8'; g.fillRect(2,0,4,256); g.fillRect(250,0,4,256); g.fillStyle='#e8e2d0'; const lx=[256/3,512/3]; for (const x of lx){ g.fillRect(x-2,0,4,120); } const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,(WORLD_LEN+200)/20); return t; })();
+const roadTex = (() => { const c=document.createElement('canvas'); c.width=256; c.height=256; const g=c.getContext('2d'); g.fillStyle='#3a3d42'; g.fillRect(0,0,256,256); g.fillStyle='#d8d4c8'; g.fillRect(2,0,4,256); g.fillRect(250,0,4,256); g.fillStyle='#e0b53a'; g.fillRect(126,0,4,120); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,(WORLD_LEN+200)/20); return t; })();
 const roadTexRef = {t:roadTex};
 const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HALF*2, WORLD_LEN+200, 1, 124), new THREE.MeshLambertMaterial({map:roadTex, side:THREE.DoubleSide})); road.receiveShadow = true; road.rotation.x=-Math.PI/2; road.position.set(0,0,-AHEAD/2+40); scene.add(road);
 const shoulderL = new THREE.Mesh(new THREE.PlaneGeometry(SHOULDER, WORLD_LEN+200, 1, 124), mat(0x6b665c)); shoulderL.receiveShadow = true; shoulderL.rotation.x=-Math.PI/2; shoulderL.position.set(-ROAD_HALF-SHOULDER/2,-0.01,-AHEAD/2+40); scene.add(shoulderL);
@@ -539,7 +539,7 @@ function applyTextures(){
   const c=document.createElement('canvas'); c.width=512; c.height=1024; const g=c.getContext('2d');
   g.drawImage(T.asphalt.image,0,0,512,512); g.drawImage(T.asphalt.image,0,512,512,512);
   g.fillStyle='#e6e2d6'; g.fillRect(3,0,5,1024); g.fillRect(504,0,5,1024);
-  g.fillStyle='#f0ead6'; for (const x of [512/3, 1024/3]) for (const y of [0,512]) g.fillRect(x-3,y,6,154);
+  g.fillStyle='#e0b53a'; for (const y of [0,512]) g.fillRect(253,y,6,154);
   const rt = new THREE.CanvasTexture(c); rt.wrapS=rt.wrapT=THREE.RepeatWrapping; rt.encoding=THREE.sRGBEncoding; rt.repeat.set(1,(WORLD_LEN+200)/20); rt.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); const wet = condicion==='lluvia'||condicion==='lluvianoche';
   const nm = T.asphalt_n; nm.repeat.set(1,(WORLD_LEN+200)/10);
   road.material = new THREE.MeshStandardMaterial({map:rt, normalMap:nm, normalScale:new THREE.Vector2(0.5,0.5), roughness:wet?0.35:0.95, metalness:0, side:THREE.DoubleSide, color:wet?0x8f949a:0xffffff}); roadTexRef.t = rt;
@@ -580,7 +580,7 @@ let camMode = 'detras', quality = 'alta';
 function setQuality(q){ quality = q; for (const b of $('quality').children) b.classList.toggle('on', b.dataset.q===q); renderer.shadowMap.enabled = q==='alta'; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); if (ASSETS.ready){ scene.remove(player); player = carMesh('sedan', true, 0xd9c23a); scene.add(player); applyCondition(); } }
 function setCam(m){ camMode = m; for (const b of $('cammode').children) b.classList.toggle('on', b.dataset.cam===m); cam.fov = m==='dentro'?72:62; cam.updateProjectionMatrix(); }
 const run = { active:false, t:0, cruise:null, lead:null, obstacles:[], events:[], timers:{}, lastLane:1, lastLook:-9, sleep:{next:0,until:0}, sms:{next:0, open:null}, frenado:null, lanePending:null };
-const metrics = () => ({ limit:{t:0,tot:0,over:0,n:0}, lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0}, hazards:[] });
+const metrics = () => ({ limit:{t:0,tot:0,over:0,n:0}, lane:{sum:0,n:0}, offT:0, speed:{sum:0,n:0}, crashes:0, cones:0, potholes:0, off:0, rts:[], headway:{sum:0,n:0,min:Infinity}, sms:{n:0, answered:0, rt:[], dev:{sum:0,n:0}}, brakes:[], lanechg:{ok:0, blind:0, nolook:0, onc:0}, invadeT:0, hazards:[] });
 let M = metrics();
 let buffer = [], driftPhase = 0, shake = 0, msgTimer = 0;
 const msgEl = $('msg');
@@ -596,7 +596,7 @@ function tickReactions(){
 /* ---------- Obstacles ---------- */
 const OBJ = {
   cone(){ let m = model('cone', 1.4); if (!m){ m = new THREE.Mesh(new THREE.ConeGeometry(0.3,0.8,8), mat(0xff6a00)); m.position.y=0.4; } return {mesh:m, w:0.6, l:0.6, type:'cone'}; },
-  pothole(){ const m = new THREE.Mesh(new THREE.CircleGeometry(0.75,10), new THREE.MeshBasicMaterial({color:0x17191c, side:THREE.DoubleSide})); m.rotation.x=-Math.PI/2; m.position.y=0.01; return {mesh:m, w:1.4, l:1.4, type:'pothole', flat:true}; },
+  pothole(){ const g=new THREE.Group(); const pm = c => new THREE.MeshBasicMaterial({color:c, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-4, polygonOffsetUnits:-4, depthWrite:false}); const rim=new THREE.Mesh(new THREE.CircleGeometry(0.85,9), pm(0x5a564e)); rim.rotation.x=-Math.PI/2; rim.position.y=0.02; rim.renderOrder=1; const hole=new THREE.Mesh(new THREE.CircleGeometry(0.62,7), pm(0x0b0c0e)); hole.rotation.x=-Math.PI/2; hole.rotation.z=rnd(0,3); hole.position.y=0.03; hole.renderOrder=2; g.add(rim,hole); return {mesh:g, w:1.5, l:1.5, type:'pothole', flat:true}; },
   puddle(){ const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6,7), new THREE.MeshBasicMaterial({color:0x6d7f8e, transparent:true, opacity:0.8, side:THREE.DoubleSide})); m.rotation.x=-Math.PI/2; m.position.y=0.015; return {mesh:m, w:2.6, l:7, type:'puddle', flat:true}; },
   animal(){ const g=new THREE.Group(); const b=box(0.7,0.7,1.4,mat(0x7a5a3a)); b.position.y=0.75; const h=box(0.4,0.4,0.5,mat(0x6a4a2a)); h.position.set(0,1.1,-0.9); g.add(b,h); return {mesh:g, w:0.8, l:1.4, type:'animal'}; },
   child(){ const g=new THREE.Group(); const b=box(0.45,1.1,0.3,mat(0xd04a7a)); b.position.y=0.55; const h=new THREE.Mesh(new THREE.SphereGeometry(0.17,8,8),mat(0xe0b090)); h.position.y=1.3; g.add(b,h); return {mesh:g, w:0.5, l:0.5, type:'child'}; },
@@ -621,21 +621,25 @@ const BEND = { d0:-120, step:5, n:0, off:[] };
 function updateBend(){ const n = Math.ceil((AHEAD+80-BEND.d0)/BEND.step); BEND.n=n; const i0 = Math.round(-BEND.d0/BEND.step); BEND.off[i0]=0; let th=0, off=0; for (let i=i0+1;i<n;i++){ th += curvAt(car.odo+(i-0.5)*BEND.step+BEND.d0)*BEND.step; off += Math.sin(th)*BEND.step; BEND.off[i]=off; } th=0; off=0; for (let i=i0-1;i>=0;i--){ th -= curvAt(car.odo+(i+0.5)*BEND.step+BEND.d0)*BEND.step; off -= Math.sin(th)*BEND.step; BEND.off[i]=off; } }
 function bend(d){ if (!BEND.n) return 0; const f=(d-BEND.d0)/BEND.step, i=Math.floor(f); if (i<0) return BEND.off[0]; if (i>=BEND.n-1) return BEND.off[BEND.n-1]; const t=f-i; return BEND.off[i]*(1-t)+BEND.off[i+1]*t; }
 function bendRoad(){ for (const m of [road, shoulderL]){ const pos=m.geometry.attributes.position; if (!m.userData.bx){ m.userData.bx=new Float32Array(pos.count); for (let i=0;i<pos.count;i++) m.userData.bx[i]=pos.getX(i); } const bx=m.userData.bx; for (let i=0;i<pos.count;i++) pos.setX(i, bx[i] + bend(pos.getY(i) - m.position.z)); pos.needsUpdate=true; } }
-function tickSlow(dt){ if (!slowOn) return; run.timers.slow -= dt; if (run.timers.slow>0) return; run.timers.slow = rnd(25,45); const lane=nearestLane(car.x); const lim = run.limit||P.speedTarget; const o=spawn('traffic', LANES[lane], -130, {color:[0xcc3333,0x3366cc,0x99aa99,0x663399][Math.floor(Math.random()*4)]}); o.speed = Math.max(30, lim-25)/KMH; o.slow=true; o.lane0=lane; }
+const TCOL = [0xcc3333,0x3366cc,0x99aa99,0x663399,0xe8e2d0,0x222428];
+function tickOncoming(dt, a, b){ if (!slowOn) return; run.timers.onc -= dt; if (run.timers.onc>0) return; run.timers.onc = rnd(a,b); const o=spawn('traffic', LANES[ONC], -AHEAD+80, {color:TCOL[Math.floor(Math.random()*TCOL.length)]}); o.speed = -(P.speedTarget/KMH + rnd(-4,3)); o.oncoming=true; o.mesh.rotation.y = Math.PI; }
+function tickFast(dt, a, b){ if (!slowOn) return; run.timers.fast -= dt; if (run.timers.fast>0) return; run.timers.fast = rnd(a,b); if (run.obstacles.some(o=>o.fast || (o.oncoming && o.z>-320))) return; const o=spawn('traffic', LANES[ONC], 32, {color:TCOL[Math.floor(Math.random()*TCOL.length)]}); o.speed = Math.max(car.speed, 8) + 7; o.fast=true; }
+function tickSlow(dt, a, b){ if (!slowOn) return; run.timers.slow -= dt; if (run.timers.slow>0) return; run.timers.slow = rnd(a||25,b||45); const lane=HOME; const lim = run.limit||P.speedTarget; const o=spawn('traffic', LANES[lane], -130, {color:[0xcc3333,0x3366cc,0x99aa99,0x663399][Math.floor(Math.random()*4)]}); o.speed = Math.max(30, lim-25)/KMH; o.slow=true; o.lane0=lane; }
 function tickSigns(){ if (!signsOn || car.odo < run.nextSign) return; const opts=[40,60,80].filter(l=>l!==run.lastSign); const lim=opts[Math.floor(Math.random()*opts.length)]; run.lastSign=lim; spawn('sign', ROAD_HALF+SHOULDER+0.7, -AHEAD+80, {kind:lim}); run.nextSign = car.odo + rnd(300,500); }
 function clearWorld(){ for (const o of [...run.obstacles]) remove(o); run.lead=null; }
 function nearestLane(x){ let best=0; LANES.forEach((l,i)=>{ if (Math.abs(x-l)<Math.abs(x-LANES[best])) best=i; }); return best; }
 
 /* ---------- Exercises ---------- */
 const EXER = {
-  libre:{ start(){ run.timers.cone=2; }, update(dt){ if (P.density>0){ run.timers.cone-=dt; if (run.timers.cone<=0){ spawn('cone', LANES[Math.floor(Math.random()*3)]+rnd(-0.8,0.8), -AHEAD+80); run.timers.cone = 60/P.density*rnd(0.6,1.4); } } } },
+  libre:{ start(){ run.timers.cone=2; }, update(dt){ if (P.density>0){ run.timers.cone-=dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone = 60/P.density*rnd(0.6,1.4); } } } },
   baches:{ start(){ run.timers.pot=3; run.timers.ani=8; msg('Atención a la orilla.'); }, update(dt){
-      run.timers.pot-=dt; if (run.timers.pot<=0){ spawn('pothole', LANES[Math.floor(Math.random()*3)]+rnd(-0.6,0.6), -AHEAD+80); run.timers.pot=rnd(3,7); }
+      run.timers.pot-=dt; if (run.timers.pot<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-0.9,0.9), -AHEAD+80); run.timers.pot=rnd(3,7); }
       run.timers.ani-=dt; if (run.timers.ani<=0){ const side = Math.random()<0.5?-1:1; const o = spawn('animal', side*(ROAD_HALF+2.5), -rnd(45,75)); o.vx = -side*rnd(2.5,4); o.mesh.rotation.y = side>0? Math.PI/2 : -Math.PI/2; startReaction('Animal'); run.timers.ani=rnd(9,18); }
-      if (P.density>0){ run.timers.cone=(run.timers.cone||2)-dt; if (run.timers.cone<=0){ spawn('cone', LANES[Math.floor(Math.random()*3)]+rnd(-0.8,0.8), -AHEAD+80); run.timers.cone=60/P.density*rnd(0.8,1.6);} }
+      if (P.density>0){ run.timers.cone=(run.timers.cone||2)-dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone=60/P.density*rnd(0.8,1.6);} }
   } },
-  seguimiento:{ start(){ const lane = nearestLane(car.x); const o = spawn('traffic', LANES[lane], -45, {color:0x2a64c8, kind:'taxi'}); o.speed = P.speedTarget/KMH; o.cruise=o.speed; o.brakeT=0; run.lead=o; run.timers.brake=rnd(10,18); msg('Seguí al auto amarillo. Mantené 3 segundos de distancia.',false,5); }, update(dt){
+  seguimiento:{ start(){ const lane = HOME; const o = spawn('traffic', LANES[lane], -45, {color:0x2a64c8, kind:'taxi'}); o.speed = P.speedTarget/KMH; o.cruise=o.speed; o.brakeT=0; run.lead=o; run.timers.brake=rnd(10,18); msg('Seguí al auto amarillo. Mantené 3 segundos de distancia.',false,5); }, update(dt){
       const o = run.lead; if (!o) return;
+      tickOncoming(dt, 8, 14);
       run.timers.brake-=dt;
       if (run.timers.brake<=0 && o.brakeT<=0){ o.brakeT=rnd(2.5,4); o.speed = o.cruise*0.35; setBrake(o.mesh,true); startReaction('Frenada del auto adelante'); run.timers.brake=rnd(12,25); }
       if (o.brakeT>0){ o.brakeT-=dt; if (o.brakeT<=0){ o.speed=o.cruise; setBrake(o.mesh,false);} }
@@ -665,19 +669,8 @@ const EXER = {
       }
       else if (f.phase==='rest'){ f.hold+=dt; if (f.hold>3){ f.phase='accel'; f.hold=0; } }
   } },
-  puntociego:{ start(){ for (let i=0;i<4;i++) addTraffic(); run.timers.ask=6; run.lanePending=null; msg('Tráfico al lado. Esperá la instrucción.',false,4); }, update(dt){
-      run.timers.ask-=dt;
-      if (!run.lanePending && run.timers.ask<=0){ const cur=nearestLane(car.x); const opts=[cur-1,cur+1].filter(i=>i>=0&&i<3); const to=opts[Math.floor(Math.random()*opts.length)]; run.lanePending={to, from:cur, t:run.t, lookedAt:-9}; msg('Cambiá al carril '+(to<cur?'IZQUIERDO':'DERECHO')+'.',false,8); run.timers.ask=rnd(12,20); }
-      if (run.lanePending){ const lp=run.lanePending; if (input.lookL&&lp.to<lp.from || input.lookR&&lp.to>lp.from) lp.lookedAt=run.t;
-        setGoal('Cambiá al', lp.to<lp.from?'izquierdo':'derecho', run.t-lp.lookedAt<3?'ok':'mid');
-        const cur=nearestLane(car.x);
-        if (cur===lp.to){ const blind = run.obstacles.some(o=>o.type==='traffic' && nearestLane(o.x)===lp.to && o.z>-9 && o.z<6); const looked = run.t-lp.lookedAt<3;
-          if (blind) { M.lanechg.blind++; sndHorn(); msg('Había un auto en el punto ciego.',true,3); } else if (!looked){ M.lanechg.nolook++; msg('Cambio sin mirar por encima del hombro.',true,3);} else { M.lanechg.ok++; msg('Cambio correcto.',false,2); }
-          run.lanePending=null; }
-        else if (run.t-lp.t>12){ run.lanePending=null; msg('No cambiaste de carril.',true,2); }
-      }
-      let n=0; for (const o of run.obstacles) if (o.type==='traffic'){ n++; if (o.z>40||o.z<-120){ remove(o); } }
-      while (n<4){ addTraffic(); n++; }
+  puntociego:{ start(){ run.timers.slow=6; run.timers.onc=3; run.timers.fast=14; msg('Rebasá al lento solo con la vía libre. Mirá el espejo antes de salir.',false,5); }, update(dt){
+      tickSlow(dt, 16, 26); tickOncoming(dt, 5, 9); tickFast(dt, 20, 32);
   } },
   peligro:{ start(){ run.timers.haz=5; msg('Leé la carretera. Las señales llegan antes que el peligro.',false,4); }, update(dt){
       run.timers.haz-=dt;
@@ -691,10 +684,9 @@ const EXER = {
         if (h.kind==='door' && z>-38){ const d=spawn('door', ROAD_HALF-0.45, z-0.3); d.timer=6; h.fired=true; h.vEvent=car.speed; startReaction('Puerta abierta'); }
         if (h.kind==='bus' && z>-42){ const c=spawn('child', -(ROAD_HALF+0.6), z-4); c.vx=1.5; h.fired=true; h.vEvent=car.speed; startReaction('Peatón tras el camión'); }
       }
-      if (P.density>0){ run.timers.cone=(run.timers.cone||4)-dt; if (run.timers.cone<=0){ spawn('cone', LANES[Math.floor(Math.random()*3)]+rnd(-0.8,0.8), -AHEAD+80); run.timers.cone=60/P.density*rnd(1,2);} }
+      if (P.density>0){ run.timers.cone=(run.timers.cone||4)-dt; if (run.timers.cone<=0){ spawn('pothole', LANES[Math.random()<0.75?HOME:ONC]+rnd(-1,1), -AHEAD+80); run.timers.cone=60/P.density*rnd(1,2);} }
   } },
 };
-function addTraffic(){ const cur=nearestLane(car.x); const lanes=[0,1,2].filter(i=>i!==cur); const lane=lanes[Math.floor(Math.random()*lanes.length)]; const o=spawn('traffic', LANES[lane], Math.random()<0.6? -rnd(10,60) : rnd(8,30), {color:[0xcc3333,0x3366cc,0x99aa99,0x663399][Math.floor(Math.random()*4)]}); o.speed = P.speedTarget/KMH + rnd(-2.5,2.5); return o; }
 
 /* ---------- Conditions ---------- */
 let rainDrops = [];
@@ -757,8 +749,8 @@ function setLock(v){ locked=v; if (v) consoleEl.classList.add('hidden'); $('togg
 /* ---------- Run control ---------- */
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
-  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; car.odo=0; track.segs=[]; track.end=0; run.timers.slow=18; run.lastLane=nearestLane(0); run.lastLook=-9; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
-  car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
+  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; car.odo=0; track.segs=[]; track.end=0; run.timers.slow=18; run.timers.onc=5; run.timers.fast=14; run.lastLane=HOME; run.lastLook=-9; run.lcAt=-9; run.oncBeep=0; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
+  car.x=LANES[HOME]; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
   $('start').style.display='none';
   EXER[ejercicio].start();
   $('stage').focus();
@@ -838,32 +830,45 @@ function step(dt){
   /* World scroll */
   roadTexRef.t.offset.y -= d/20; if (ASSETS.t.asphalt_n) ASSETS.t.asphalt_n.offset.y -= d/10;
   for (const s of scenery){ s.position.z += d; if (s.position.z>40) s.position.z -= WORLD_LEN; if (s.userData.bx===undefined) s.userData.bx=s.position.x; s.position.x = s.userData.bx + bend(-s.position.z); }
-  if (rain && Math.random() < dt*0.35){ spawn('puddle', LANES[Math.floor(Math.random()*3)]+rnd(-0.5,0.5), -AHEAD+80); }
+  if (rain && Math.random() < dt*0.35){ spawn('puddle', LANES[Math.random()<0.6?HOME:ONC]+rnd(-0.6,0.6), -AHEAD+80); }
   for (const o of [...run.obstacles]){
     const rel = o.speed!==null ? (car.speed - o.speed) : car.speed;
     o.z += rel*dt + o.vz*dt; o.x += o.vx*dt;
     if (o.timer!==undefined){ o.timer-=dt; if (o.timer<=0){ remove(o); continue; } }
     o.mesh.position.x=o.x + bend(-o.z); o.mesh.position.z=o.z;
-    if (o.z>30 || Math.abs(o.x)>ROAD_HALF+SHOULDER+6 && o.vx!==0){ remove(o); continue; }
+    if (o.z>30 || (o.fast && o.z<-160) || Math.abs(o.x)>ROAD_HALF+SHOULDER+6 && o.vx!==0){ remove(o); continue; }
     /* collision with player box (x ±0.9, z ±2.1) */
     const hitX = Math.abs(o.x-car.x) < (o.w/2+0.9), hitZ = Math.abs(o.z) < (o.l/2+2.1);
     if (o.type==='sign' && !o.passed && o.z>-1){ o.passed=true; run.limit=o.limit; M.limit.n++; msg('Límite '+o.limit+' km/h', false, 2); sndTone(660, 0.12, 0.08, 'triangle'); }
     if (hitX && hitZ && !o.noHit){
       if (o.type==='puddle'){ if (car.hydro<=0 && car.speed>12){ car.hydro=0.9; msg('Hidroplaneo', true, 1.2);} continue; }
       if (o.hit) continue; o.hit=true;
-      if (o.type==='pothole'){ M.potholes++; shake=0.35; car.speed*=0.94; sndBump(); continue; }
+      if (o.type==='pothole'){ M.potholes++; shake=0.5; car.speed*=0.9; car.heading += (Math.random()<0.5?-1:1)*0.05; sndBump(); continue; }
       if (o.type==='cone'){ M.cones++; shake=0.2; car.speed*=0.9; sndBump(); o.mesh.rotation.z=1.2; o.mesh.position.y=0.3; o.vx = Math.sign(o.x-car.x||1)*4; continue; }
       if (o.type==='ball'){ o.vx = 3; continue; }
-      o.impactSpeed = car.speed; M.crashes++; shake=0.8; const vImp = car.speed*KMH; car.speed = 0; car.crashT = 1.0; sndCrash(vImp);
-      msg({animal:'Atropellaste un animal', child:'Atropellaste a una persona', traffic:'Choque con otro auto', wall:'Choque contra el muro', door:'Chocaste la puerta', parked:'Chocaste el auto estacionado', bus:'Chocaste el camión'}[o.type]||'Choque', true, 3);
+      o.impactSpeed = car.speed; M.crashes++; shake=0.8; const vImp = (car.speed + (o.oncoming? -o.speed : 0))*KMH; car.speed = 0; car.crashT = 1.0; sndCrash(vImp);
+      msg(o.oncoming ? 'Choque de frente' : {animal:'Atropellaste un animal', child:'Atropellaste a una persona', traffic:'Choque con otro auto', wall:'Choque contra el muro', door:'Chocaste la puerta', parked:'Chocaste el auto estacionado', bus:'Chocaste el camión'}[o.type]||'Choque', true, 3);
       if (o.type==='traffic'){ sndHorn(); if (o!==run.lead) remove(o); }
       const hard = ['wall','traffic','bus','parked'].includes(o.type);
       const why = o.type==='child' ? 'Atropello a una persona' : M.crashes>=3 ? 'Tres choques' : (hard && vImp>40) ? 'Choque a '+Math.round(vImp)+' km/h' : null;
       if (why && !run.ending){ run.ending={t:run.t+1.3, reason:why}; msg(msgEl.textContent+'. Recorrido terminado.', true, 5); }
     }
   }
-  if (ejercicio==='libre'||ejercicio==='baches'||ejercicio==='peligro'){ tickSigns(); tickSlow(dt);
-    const lnNow = nearestLane(car.x); if (lnNow!==run.lastLane){ if (run.t-(run.lcAt||-9)>4 && run.obstacles.some(o=>o.slow && o.lane0===run.lastLane && o.z<0 && o.z>-60)){ run.lcAt=run.t; const blind = run.obstacles.some(o=>o.type==='traffic' && !o.slow && nearestLane(o.x)===lnNow && o.z>-9 && o.z<6); if (blind){ M.lanechg.blind++; sndHorn(); msg('Rebase con auto en el punto ciego.',true,3); } else if (run.t-run.lastLook>3){ M.lanechg.nolook++; msg('Rebase sin mirar por encima del hombro.',true,3); } else { M.lanechg.ok++; msg('Rebase correcto.',false,2); } } run.lastLane=lnNow; } }
+  if (ejercicio==='libre'||ejercicio==='baches'||ejercicio==='peligro'){ tickSigns(); tickSlow(dt); tickOncoming(dt, ejercicio==='libre'?7:9, ejercicio==='libre'?14:17); }
+  if (ejercicio!=='frenado'){
+    const lnNow = nearestLane(car.x); const passing = run.obstacles.some(o=>o.slow && o.z<25 && o.z>-70);
+    if (lnNow===ONC && !passing) M.invadeT += dt;
+    if (lnNow===ONC && run.t>run.oncBeep && run.obstacles.some(o=>o.oncoming && o.z<0 && o.z>-140)){ run.oncBeep=run.t+3; msg('¡Tráfico de frente!', true, 1.5); }
+    if (lnNow!==run.lastLane){
+      if (lnNow===ONC && run.t-run.lcAt>4){ run.lcAt=run.t;
+        const onc = run.obstacles.find(o=>o.oncoming && o.z<0 && o.z>-260); const behind = run.obstacles.some(o=>o.fast && o.z>-3 && o.z<40);
+        if (behind){ M.lanechg.blind++; sndHorn(); msg('Un auto te estaba rebasando. Mirá el espejo.',true,3); }
+        else if (onc){ M.lanechg.onc++; sndHorn(); msg('Saliste a rebasar con tráfico de frente a '+Math.round(-onc.z)+' m.',true,3); }
+        else if (passing){ M.lanechg.ok++; msg('Rebase con vía libre.',false,2); }
+        else msg('Invadiste el carril contrario.',true,2);
+      }
+      run.lastLane=lnNow; }
+  }
   EXER[ejercicio].update(dt);
   if (!run.goalSet) goalSpeed(); run.goalSet=false;
   if (msgTimer>0){ msgTimer-=dt; if (msgTimer<=0) msgEl.classList.remove('on'); }
@@ -903,7 +908,7 @@ function render(){
   $('spd').textContent = Math.round(car.speed*KMH);
   const rem = Math.max(0, P.duration-run.t); $('st-time').textContent = Math.floor(rem/60)+':'+String(Math.floor(rem%60)).padStart(2,'0');
   $('st-crash').textContent = M.crashes; $('st-off').textContent = M.off;
-  const dev = clamp((car.x-LANES[nearestLane(car.x)])/1.8, -1, 1); $('lanedot').style.left = (50+dev*45)+'%'; $('lanedot').style.background = Math.abs(dev)<0.4?'var(--good)':Math.abs(dev)<0.8?'var(--warn)':'var(--bad)';
+  const dev = clamp((car.x-LANES[HOME])/2.4, -1, 1); $('lanedot').style.left = (50+dev*45)+'%'; $('lanedot').style.background = Math.abs(dev)<0.4?'var(--good)':Math.abs(dev)<0.8?'var(--warn)':'var(--bad)';
   $('src-label').textContent = input.source==='timón' ? 'Timón detectado. Q/E o botones para mirar.' : 'Teclado: flechas o WASD · Q/E mirar · 1/2 responder · L alumno · M sonido';
 }
 frame();
@@ -939,7 +944,7 @@ function summarize(){
   const rts = M.rts.filter(r=>r.rt!==null).map(r=>r.rt);
   return { estado:presetName, ej:EJ[ejercicio].n, cond:COND[condicion].n, fecha:new Date().toLocaleString('es-HN',{hour12:false}),
     fin: run.endReason||'Tiempo cumplido', target:P.speedTarget, limit:M.limit, dur:Math.round(run.t), dist:Math.round(car.odo), vel: M.speed.n? M.speed.sum/M.speed.n : 0,
-    lane: M.lane.n? M.lane.sum/M.lane.n : 0, offT:M.offT, off:M.off, crashes:M.crashes, cones:M.cones, potholes:M.potholes,
+    lane: M.lane.n? M.lane.sum/M.lane.n : 0, offT:M.offT, off:M.off, invadeT:M.invadeT, crashes:M.crashes, cones:M.cones, potholes:M.potholes,
     rt: rts.length? rts.reduce((a,b)=>a+b,0)/rts.length : null, rtMiss: M.rts.length-rts.length, rtN:M.rts.length,
     headway: M.headway.n? M.headway.sum/M.headway.n : null, headwayMin: M.headway.n? M.headway.min : null,
     sms: M.sms, brakes: M.brakes, lanechg: M.lanechg, hazards: M.hazards.filter(h=>h.fired).map(h=>({kind:h.kind, v0:Math.round(h.v0*KMH), v1:Math.round(h.vEvent*KMH), braked:h.braked})),
@@ -954,11 +959,12 @@ function semaforo(r){
   add('Control de carril', r.lane.toFixed(2)+' m de desvío', lv(r.lane,0.5,0.9));
   add('Salidas de la carretera', r.off, lv(r.off,0,1));
   add('Choques', r.crashes, r.crashes?'bad':'ok');
-  add('Conos y baches', r.cones+' / '+r.potholes, lv(r.cones+r.potholes,0,2));
+  add('Baches', r.potholes, lv(r.potholes,0,2));
+  if (r.invadeT!==undefined && r.ej!==EJ.frenado.n) add('Carril contrario', r.invadeT.toFixed(1)+' s sin rebasar', lv(r.invadeT,0.5,3));
   if (r.rtN) add('Tiempo de reacción', (r.rt===null?'sin reacción':(r.rt*1000).toFixed(0)+' ms')+(r.rtMiss?' · '+r.rtMiss+' sin reaccionar':''), (r.rt===null||r.rtMiss>0)?'bad':lv(r.rt,0.8,1.3));
   if (r.headway!==null && r.headway!==undefined) add('Distancia de seguimiento', r.headway.toFixed(1)+' s · mín '+r.headwayMin.toFixed(1)+' s', (r.headway>=3&&r.headwayMin>=1.5)?'ok':r.headway>=2?'mid':'bad');
   if (r.brakes.length){ const hits=r.brakes.filter(b=>b.hit).length; add('Frenado ante el muro', hits+' de '+r.brakes.length+' con choque', hits?'bad':'ok'); }
-  if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook) add('Cambios de carril', r.lanechg.ok+' bien · '+r.lanechg.blind+' punto ciego · '+r.lanechg.nolook+' sin mirar', r.lanechg.blind?'bad':r.lanechg.nolook?'mid':'ok');
+  if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook+(r.lanechg.onc||0)) add('Rebases', r.lanechg.ok+' con vía libre · '+(r.lanechg.onc||0)+' con tráfico de frente · '+r.lanechg.blind+' con auto rebasándote', (r.lanechg.blind||r.lanechg.onc)?'bad':r.lanechg.nolook?'mid':'ok');
   if (r.hazards.length){ const b=r.hazards.filter(h=>h.braked).length; add('Lectura de peligros', b+' de '+r.hazards.length+' con freno anticipado', b===r.hazards.length?'ok':b?'mid':'bad'); }
   if (r.sms.n) add('Celular', r.sms.answered+' de '+r.sms.n+' respondidos al volante', r.sms.answered?'bad':'ok');
   return L;
@@ -972,11 +978,11 @@ function showResults(r){
   const add = (k,v) => kv.push('<span>'+k+'</span><b>'+v+'</b>');
   add('Fin del recorrido', r.fin); add('Estado del conductor', r.estado); add('Ejercicio', r.ej); add('Condición', r.cond);
   add('Velocidad promedio', r.vel.toFixed(0)+' km/h'); add('Desviación de carril', r.lane.toFixed(2)+' m');
-  add('Fuera de la carretera', r.offT.toFixed(1)+' s · '+r.off+' salidas'); add('Choques', r.crashes); add('Conos / baches', r.cones+' / '+r.potholes);
+  add('Fuera de la carretera', r.offT.toFixed(1)+' s · '+r.off+' salidas'); add('Choques', r.crashes); add('Baches', r.potholes); if (r.invadeT!==undefined) add('Carril contrario', r.invadeT.toFixed(1)+' s sin rebasar');
   if (r.rtN) add('Tiempo de reacción', (r.rt===null?'sin reacción':(r.rt*1000).toFixed(0)+' ms')+(r.rtMiss?' · '+r.rtMiss+' sin reaccionar':''));
   if (r.headway!==null) add('Distancia de seguimiento', r.headway.toFixed(1)+' s prom · mín '+r.headwayMin.toFixed(1)+' s');
   if (r.sms.n) add('Mensajes', r.sms.answered+'/'+r.sms.n+' respondidos · desvío '+(r.sms.dev.n? (r.sms.dev.sum/r.sms.dev.n).toFixed(2):'—')+' m');
-  if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook) add('Cambios de carril', r.lanechg.ok+' bien · '+r.lanechg.blind+' con auto en punto ciego · '+r.lanechg.nolook+' sin mirar');
+  if (r.lanechg.ok+r.lanechg.blind+r.lanechg.nolook+(r.lanechg.onc||0)) add('Rebases', r.lanechg.ok+' con vía libre · '+(r.lanechg.onc||0)+' con tráfico de frente · '+r.lanechg.blind+' con auto rebasándote');
   let html = semHtml(semaforo(r)) + '<div class="kv">'+kv.join('')+'</div>';
   if (r.brakes.length){ html += '<h3>Frenado</h3><div class="scroll"><table><thead><tr><th>Velocidad</th><th>Resultado</th><th>Recorrido</th></tr></thead><tbody>'+r.brakes.map(b=>'<tr><td>'+b.v+' km/h</td><td>'+(b.hit?'choque a '+b.impact+' km/h':'quedó a '+b.dist.toFixed(0)+' m')+'</td><td>'+b.braked.toFixed(0)+' m</td></tr>').join('')+'</tbody></table></div>'; }
   if (r.hazards.length){ html += '<h3>Percepción de peligro</h3><div class="scroll"><table><thead><tr><th>Señal</th><th>Al verla</th><th>Al evento</th><th>Frenó antes</th></tr></thead><tbody>'+r.hazards.map(h=>'<tr><td>'+HZ[h.kind]+'</td><td>'+h.v0+' km/h</td><td>'+h.v1+' km/h</td><td>'+(h.braked?'sí':'no')+'</td></tr>').join('')+'</tbody></table></div>'; }
