@@ -185,7 +185,8 @@ th{color:var(--muted);font-weight:500}
       <div class="slider"><span>Velocidad máxima <em id="v-maxSpeed">120 km/h</em></span><input type="range" id="p-maxSpeed" min="40" max="160" step="10" value="120"><output>120</output></div>
       <div class="slider"><span>Densidad de obstáculos <em>conos por minuto</em></span><input type="range" id="p-density" min="0" max="20" step="1" value="6"><output>6</output></div>
       <div class="chips" id="signs"><button class="on" data-v="1">Con señales de límite</button><button data-v="0">Sin señales</button></div>
-      <p class="note">Rótulos de 40, 60 y 80 km/h en carretera libre, baches y percepción de peligro. Se mide el tiempo por encima del límite.</p>
+      <div class="chips" id="slowtraffic"><button class="on" data-v="1">Con tráfico lento</button><button data-v="0">Sin tráfico lento</button></div>
+      <p class="note">Rótulos de 40, 60 y 80 km/h en carretera libre, baches y percepción de peligro. Se mide el tiempo por encima del límite. El tráfico lento aparece en tu carril cada 25 a 45 s: seguilo a 3 segundos o rebasalo mirando por encima del hombro.</p>
       <h3>Cámara</h3>
       <div class="chips" id="cammode"><button class="on" data-cam="detras">Detrás del auto</button><button data-cam="dentro">Dentro del auto</button></div>
       <p class="note">También con la tecla C durante el recorrido.</p>
@@ -200,6 +201,8 @@ th{color:var(--muted);font-weight:500}
 
     <section class="tab" id="tab-cam">
       <div class="opt" id="condiciones"></div>
+      <div class="chips" id="curves"><button class="on" data-v="1">Con curvas</button><button data-v="0">Recta</button></div>
+      <p class="note">Rectas de 120 a 300 m y curvas de radio 180 a 450 m. En curva el auto se va hacia afuera si no bajás o no girás.</p>
       <p class="note">Con lluvia aparecen charcos: al pasar por uno el timón deja de responder un instante y el freno pierde fuerza. De noche el alcance de las luces manda cuánto ves adelante.</p>
     </section>
 
@@ -513,8 +516,8 @@ const box = (w,h,d,m) => new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, WORLD_LEN+200), mat(0x4e6b3a)); ground.receiveShadow = true; ground.rotation.x = -Math.PI/2; ground.position.set(0,-0.02,-AHEAD/2+40); scene.add(ground);
 const roadTex = (() => { const c=document.createElement('canvas'); c.width=256; c.height=256; const g=c.getContext('2d'); g.fillStyle='#3a3d42'; g.fillRect(0,0,256,256); g.fillStyle='#d8d4c8'; g.fillRect(2,0,4,256); g.fillRect(250,0,4,256); g.fillStyle='#e8e2d0'; const lx=[256/3,512/3]; for (const x of lx){ g.fillRect(x-2,0,4,120); } const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1,(WORLD_LEN+200)/20); return t; })();
 const roadTexRef = {t:roadTex};
-const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HALF*2, WORLD_LEN+200), new THREE.MeshLambertMaterial({map:roadTex, side:THREE.DoubleSide})); road.receiveShadow = true; road.rotation.x=-Math.PI/2; road.position.set(0,0,-AHEAD/2+40); scene.add(road);
-const shoulderL = new THREE.Mesh(new THREE.PlaneGeometry(SHOULDER, WORLD_LEN+200), mat(0x6b665c)); shoulderL.receiveShadow = true; shoulderL.rotation.x=-Math.PI/2; shoulderL.position.set(-ROAD_HALF-SHOULDER/2,-0.01,-AHEAD/2+40); scene.add(shoulderL);
+const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HALF*2, WORLD_LEN+200, 1, 124), new THREE.MeshLambertMaterial({map:roadTex, side:THREE.DoubleSide})); road.receiveShadow = true; road.rotation.x=-Math.PI/2; road.position.set(0,0,-AHEAD/2+40); scene.add(road);
+const shoulderL = new THREE.Mesh(new THREE.PlaneGeometry(SHOULDER, WORLD_LEN+200, 1, 124), mat(0x6b665c)); shoulderL.receiveShadow = true; shoulderL.rotation.x=-Math.PI/2; shoulderL.position.set(-ROAD_HALF-SHOULDER/2,-0.01,-AHEAD/2+40); scene.add(shoulderL);
 const shoulderR = shoulderL.clone(); shoulderR.position.x = ROAD_HALF+SHOULDER/2; scene.add(shoulderR);
 
 let scenery = [];
@@ -607,6 +610,18 @@ const OBJ = {
 };
 function spawn(kind, x, z, extra){ const o = OBJ[kind](extra && extra.color, extra && extra.kind); if (!o.flat) shadowed(o.mesh); o.x=x; o.z=z; o.vx=0; o.vz=0; o.speed=null; o.hit=false; Object.assign(o, extra||{}); o.mesh.position.set(x, o.mesh.position.y, z); scene.add(o.mesh); run.obstacles.push(o); return o; }
 function remove(o){ scene.remove(o.mesh); run.obstacles.splice(run.obstacles.indexOf(o),1); }
+/* ---------- Track: straights and curves keyed to the odometer. Physics stays in road coordinates; the drawn world is bent sideways by bend(d) for a point d metres ahead. ---------- */
+let curvesOn = true, slowOn = true;
+for (const b of $('curves').children) b.addEventListener('click', () => { curvesOn = b.dataset.v==='1'; for (const x of $('curves').children) x.classList.toggle('on', x===b); });
+for (const b of $('slowtraffic').children) b.addEventListener('click', () => { slowOn = b.dataset.v==='1'; for (const x of $('slowtraffic').children) x.classList.toggle('on', x===b); });
+const track = { segs:[], end:0 };
+function trackExtend(s){ while (track.end < s+1200){ const straight = track.segs.length%2===0; const len = track.segs.length===0? 180 : straight? rnd(120,300) : rnd(120,280); const k = straight? 0 : (Math.random()<0.5?-1:1)/rnd(180,450); track.segs.push({s0:track.end, s1:track.end+len, k}); track.end += len; if (track.segs.length>40) track.segs.splice(0,10); } }
+function curvAt(s){ if (!curvesOn) return 0; trackExtend(s); for (const g of track.segs){ if (s>=g.s0 && s<g.s1){ const e=Math.min(1,(s-g.s0)/40,(g.s1-s)/40); return g.k*e*e*(3-2*e); } } return 0; }
+const BEND = { d0:-120, step:5, n:0, off:[] };
+function updateBend(){ const n = Math.ceil((AHEAD+80-BEND.d0)/BEND.step); BEND.n=n; const i0 = Math.round(-BEND.d0/BEND.step); BEND.off[i0]=0; let th=0, off=0; for (let i=i0+1;i<n;i++){ th += curvAt(car.odo+(i-0.5)*BEND.step+BEND.d0)*BEND.step; off += Math.sin(th)*BEND.step; BEND.off[i]=off; } th=0; off=0; for (let i=i0-1;i>=0;i--){ th -= curvAt(car.odo+(i+0.5)*BEND.step+BEND.d0)*BEND.step; off -= Math.sin(th)*BEND.step; BEND.off[i]=off; } }
+function bend(d){ if (!BEND.n) return 0; const f=(d-BEND.d0)/BEND.step, i=Math.floor(f); if (i<0) return BEND.off[0]; if (i>=BEND.n-1) return BEND.off[BEND.n-1]; const t=f-i; return BEND.off[i]*(1-t)+BEND.off[i+1]*t; }
+function bendRoad(){ for (const m of [road, shoulderL]){ const pos=m.geometry.attributes.position; if (!m.userData.bx){ m.userData.bx=new Float32Array(pos.count); for (let i=0;i<pos.count;i++) m.userData.bx[i]=pos.getX(i); } const bx=m.userData.bx; for (let i=0;i<pos.count;i++) pos.setX(i, bx[i] + bend(pos.getY(i) - m.position.z)); pos.needsUpdate=true; } }
+function tickSlow(dt){ if (!slowOn) return; run.timers.slow -= dt; if (run.timers.slow>0) return; run.timers.slow = rnd(25,45); const lane=nearestLane(car.x); const lim = run.limit||P.speedTarget; const o=spawn('traffic', LANES[lane], -130, {color:[0xcc3333,0x3366cc,0x99aa99,0x663399][Math.floor(Math.random()*4)]}); o.speed = Math.max(30, lim-25)/KMH; o.slow=true; o.lane0=lane; }
 function tickSigns(){ if (!signsOn || car.odo < run.nextSign) return; const opts=[40,60,80].filter(l=>l!==run.lastSign); const lim=opts[Math.floor(Math.random()*opts.length)]; run.lastSign=lim; spawn('sign', ROAD_HALF+SHOULDER+0.7, -AHEAD+80, {kind:lim}); run.nextSign = car.odo + rnd(300,500); }
 function clearWorld(){ for (const o of [...run.obstacles]) remove(o); run.lead=null; }
 function nearestLane(x){ let best=0; LANES.forEach((l,i)=>{ if (Math.abs(x-l)<Math.abs(x-LANES[best])) best=i; }); return best; }
@@ -733,7 +748,7 @@ for (const b of $('sound').children) b.addEventListener('click', () => setSound(
 
 /* Live objective: one HUD row that each exercise feeds; defaults to speed vs target. */
 function setGoal(k, v, level){ $('goal-k').textContent=k; const b=$('goal-v'); b.textContent=v; b.className=level||''; run.goalSet=true; }
-function goalSpeed(){ if (run.limit){ const v=Math.round(car.speed*KMH), ov=v-run.limit; setGoal('Límite '+run.limit, v+' km/h', ov<=2?'ok':ov<=10?'mid':'bad'); return; } const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
+function goalSpeed(){ const sl = run.obstacles.find(o=>o.slow && o.z<0 && o.z>-90 && nearestLane(o.x)===nearestLane(car.x)); if (sl && car.speed>1){ const hw=(-sl.z-4.2)/car.speed; M.headway.sum+=hw; M.headway.n++; if (hw<M.headway.min) M.headway.min=hw; setGoal('Vehículo lento', hw.toFixed(1)+' s', hw>=3?'ok':hw>=2?'mid':'bad'); return; } if (run.limit){ const v=Math.round(car.speed*KMH), ov=v-run.limit; setGoal('Límite '+run.limit, v+' km/h', ov<=2?'ok':ov<=10?'mid':'bad'); return; } const v=Math.round(car.speed*KMH), d=Math.abs(v-P.speedTarget); setGoal('Velocidad', v+' / '+P.speedTarget, d<=10?'ok':d<=20?'mid':'bad'); }
 
 /* Student mode: console hidden and locked until L is pressed again. */
 let locked = false;
@@ -742,7 +757,7 @@ function setLock(v){ locked=v; if (v) consoleEl.classList.add('hidden'); $('togg
 /* ---------- Run control ---------- */
 function startRun(){
   clearWorld(); M = metrics(); buffer=[]; run.active=true; run.t=0; run.cruise=null; run.events=[]; run.timers={}; run.frenado=null; run.lanePending=null;
-  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
+  run.sleep={next:rnd(6,14), until:0}; run.sms={next:rnd(6,12), open:null}; $('sms').classList.remove('on'); run.ending=null; run.endReason=null; run.limit=null; run.lastSign=null; run.nextSign=60; run.limitBeep=0; car.odo=0; track.segs=[]; track.end=0; run.timers.slow=18; run.lastLane=nearestLane(0); run.lastLook=-9; $('debrief').hidden=true; sndInit(); setGoal('Velocidad','—','');
   car.x=0; car.heading=0; car.speed=P.speedTarget/KMH*0.6; car.offroad=false; car.hydro=0; car.atEdge=false; car.crashT=0;
   $('start').style.display='none';
   EXER[ejercicio].start();
@@ -807,13 +822,13 @@ function step(dt){
   car.speed = clamp(car.speed + acc*dt, 0, P.maxSpeed/KMH);
   const angle = steer*0.3/(1+car.speed/12)*grip;
   const yaw = Math.max(car.speed, Math.min(car.speed*6, 2.5))*Math.tan(angle)/2.7;
-  car.heading += yaw*dt; car.heading -= car.heading*1.4*dt; car.heading = clamp(car.heading,-0.6,0.6);
+  car.heading += yaw*dt; car.heading -= car.heading*1.4*dt; car.heading -= car.speed*curvAt(car.odo)*dt; car.heading = clamp(car.heading,-0.6,0.6);
   car.x += car.speed*Math.sin(car.heading)*dt;
-  const edge = ROAD_HALF+SHOULDER+1.5; if (Math.abs(car.x)>edge){ const sg = Math.sign(car.x); if (!car.atEdge){ car.speed*=0.7; shake=0.3; car.atEdge=true; } car.x = sg*edge; car.heading = -sg*Math.max(Math.abs(car.heading)*0.3, 0.12); } else if (Math.abs(car.x) < edge-0.6) car.atEdge=false;
+  const edge = ROAD_HALF+SHOULDER+1.5; if (Math.abs(car.x)>edge){ const sg = Math.sign(car.x); if (!car.atEdge){ car.speed*=0.7; shake=0.3; car.atEdge=true; } car.x = sg*edge; car.heading = -sg*Math.max(Math.abs(car.heading)*0.3, 0.12); } else if (Math.abs(car.x) < ROAD_HALF) car.atEdge=false;
   const wasOff = car.offroad; car.offroad = Math.abs(car.x) > ROAD_HALF+0.5;
   if (car.offroad && !wasOff){ M.off++; msg('Salida de la carretera', true, 2); }
   if (car.offroad){ M.offT+=dt; shake = Math.max(shake, 0.12); }
-  const d = car.speed*dt; car.odo += d;
+  const d = car.speed*dt; car.odo += d; updateBend(); bendRoad();
 
   /* Metrics */
   const ln = nearestLane(car.x); M.lane.sum += Math.abs(car.x-LANES[ln]); M.lane.n++; M.speed.sum+=vKmh; M.speed.n++;
@@ -822,13 +837,13 @@ function step(dt){
 
   /* World scroll */
   roadTexRef.t.offset.y -= d/20; if (ASSETS.t.asphalt_n) ASSETS.t.asphalt_n.offset.y -= d/10;
-  for (const s of scenery){ s.position.z += d; if (s.position.z>40) s.position.z -= WORLD_LEN; }
+  for (const s of scenery){ s.position.z += d; if (s.position.z>40) s.position.z -= WORLD_LEN; if (s.userData.bx===undefined) s.userData.bx=s.position.x; s.position.x = s.userData.bx + bend(-s.position.z); }
   if (rain && Math.random() < dt*0.35){ spawn('puddle', LANES[Math.floor(Math.random()*3)]+rnd(-0.5,0.5), -AHEAD+80); }
   for (const o of [...run.obstacles]){
     const rel = o.speed!==null ? (car.speed - o.speed) : car.speed;
     o.z += rel*dt + o.vz*dt; o.x += o.vx*dt;
     if (o.timer!==undefined){ o.timer-=dt; if (o.timer<=0){ remove(o); continue; } }
-    o.mesh.position.x=o.x; o.mesh.position.z=o.z;
+    o.mesh.position.x=o.x + bend(-o.z); o.mesh.position.z=o.z;
     if (o.z>30 || Math.abs(o.x)>ROAD_HALF+SHOULDER+6 && o.vx!==0){ remove(o); continue; }
     /* collision with player box (x ±0.9, z ±2.1) */
     const hitX = Math.abs(o.x-car.x) < (o.w/2+0.9), hitZ = Math.abs(o.z) < (o.l/2+2.1);
@@ -847,7 +862,8 @@ function step(dt){
       if (why && !run.ending){ run.ending={t:run.t+1.3, reason:why}; msg(msgEl.textContent+'. Recorrido terminado.', true, 5); }
     }
   }
-  if (ejercicio==='libre'||ejercicio==='baches'||ejercicio==='peligro') tickSigns();
+  if (ejercicio==='libre'||ejercicio==='baches'||ejercicio==='peligro'){ tickSigns(); tickSlow(dt);
+    const lnNow = nearestLane(car.x); if (lnNow!==run.lastLane){ if (run.t-(run.lcAt||-9)>4 && run.obstacles.some(o=>o.slow && o.lane0===run.lastLane && o.z<0 && o.z>-60)){ run.lcAt=run.t; const blind = run.obstacles.some(o=>o.type==='traffic' && !o.slow && nearestLane(o.x)===lnNow && o.z>-9 && o.z<6); if (blind){ M.lanechg.blind++; sndHorn(); msg('Rebase con auto en el punto ciego.',true,3); } else if (run.t-run.lastLook>3){ M.lanechg.nolook++; msg('Rebase sin mirar por encima del hombro.',true,3); } else { M.lanechg.ok++; msg('Rebase correcto.',false,2); } } run.lastLane=lnNow; } }
   EXER[ejercicio].update(dt);
   if (!run.goalSet) goalSpeed(); run.goalSet=false;
   if (msgTimer>0){ msgTimer-=dt; if (msgTimer<=0) msgEl.classList.remove('on'); }
@@ -863,9 +879,9 @@ function render(){
   sun.position.set(car.x-35, 70, 45); sun.target.position.set(car.x, 0, -15);
   const sx = shake>0 ? (Math.random()-0.5)*shake : 0, sy = shake>0 ? (Math.random()-0.5)*shake*0.5 : 0; shake = Math.max(0, shake-0.02);
   const inside = camMode==='dentro';
-  if (inside && player.userData.eye){ const e = player.userData.eye; cam.position.set(car.x + e.x + sx*0.5, e.y + sy*0.5, e.z); cam.lookAt(car.x + e.x + car.heading*10, e.y-0.3, -40); if (player.userData.wheel && player.userData.wheelAxis){ const w=player.userData.wheel; w.quaternion.setFromAxisAngle(player.userData.wheelAxis, -input.steer*Math.PI*1.1).multiply(player.userData.wheelQ0); } }
-  else if (inside){ cam.position.set(car.x-0.38 + sx*0.5, 1.22 + sy*0.5, -0.1); cam.lookAt(car.x-0.38 + car.heading*10, 1.0, -40); player.visible=false; }
-  else { cam.position.set(car.x*0.85 + sx, 3.3 + sy, 8.8); cam.lookAt(car.x + car.heading*6, 0.6, -22); }
+  if (inside && player.userData.eye){ const e = player.userData.eye; cam.position.set(car.x + e.x + sx*0.5, e.y + sy*0.5, e.z); cam.lookAt(car.x + e.x + car.heading*10 + bend(40)*0.4, e.y-0.3, -40); if (player.userData.wheel && player.userData.wheelAxis){ const w=player.userData.wheel; w.quaternion.setFromAxisAngle(player.userData.wheelAxis, -input.steer*Math.PI*1.1).multiply(player.userData.wheelQ0); } }
+  else if (inside){ cam.position.set(car.x-0.38 + sx*0.5, 1.22 + sy*0.5, -0.1); cam.lookAt(car.x-0.38 + car.heading*10 + bend(40)*0.4, 1.0, -40); player.visible=false; }
+  else { cam.position.set(car.x*0.85 + sx, 3.3 + sy, 8.8); cam.lookAt(car.x + car.heading*6 + bend(30)*0.35, 0.6, -22); }
   renderer.setScissorTest(false); renderer.setViewport(0,0,w,h); renderer.render(scene, cam); player.visible=true;
   /* Rear mirror: narrow FOV, flipped like a real mirror, so cars right beside you fall in the blind spot. */
   const mw=Math.round(w*0.28), mh=Math.round(mw/2.6), mx=Math.round((w-mw)/2), my=h-mh-Math.round(h*0.085);
