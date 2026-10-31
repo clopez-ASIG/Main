@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía de El Practicante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@600;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Paleta ASIG: navy de anclaje, azul interactivo, amarillo solo como señal fina, verde solo para "abierto". */
+    --navy: #0C1B30;
+    --azul: #0070C4;
+    --amarillo: #FFD800;
+    --verde: #3FA23A;
+    --fondo: #F1F5FA;
+    --tarjeta: #FFFFFF;
+    --linea: #DCE4EE;
+    --texto: #16233A;
+    --texto-suave: #5B6B82;
+    --display: "Raleway", "Segoe UI", Arial, sans-serif;
+    --cuerpo: "Nunito Sans", "Segoe UI", Arial, sans-serif;
+    /* Layout: una columna de lectura de ~68ch, cabecera navy, secciones como tarjetas con una regla amarilla fina a la izquierda del título. */
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--fondo);
+    color: var(--texto);
+    font-family: var(--cuerpo);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  header {
+    background: var(--navy);
+    color: #F1F5FA;
+    padding: 28px 16px 24px;
+    border-bottom: 3px solid var(--amarillo);
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+  header .wrap { padding: 0 16px; }
+  .kicker {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  header p { margin: 0; max-width: 60ch; opacity: 0.9; }
+  header a { color: var(--amarillo); text-decoration: none; }
+  header a:hover, header a:focus-visible { text-decoration: underline; }
+  nav.toc {
+    margin: 20px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  nav.toc a {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--azul);
+    background: var(--tarjeta);
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    padding: 5px 12px;
+    text-decoration: none;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { border-color: var(--azul); outline: none; }
+  main { padding: 8px 0 48px; }
+  section {
+    background: var(--tarjeta);
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    padding: 22px 22px 18px;
+    margin-top: 18px;
+  }
+  h2 {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    margin: 0 0 12px;
+    padding-left: 12px;
+    border-left: 3px solid var(--amarillo);
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display);
+    font-size: 1rem;
+    margin: 18px 0 6px;
+  }
+  p, li { max-width: 68ch; }
+  p { margin: 0 0 10px; }
+  ul, ol { margin: 0 0 10px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--azul); }
+  code {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--fondo);
+    border: 1px solid var(--linea);
+    border-radius: 5px;
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+  .ruta { display: grid; gap: 6px; margin: 0 0 12px; }
+  .ruta div {
+    display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline;
+    padding: 8px 12px; border-radius: 8px; background: var(--fondo);
+  }
+  .ruta strong { font-family: var(--display); font-size: 0.9rem; min-width: 9ch; }
+  .nota {
+    border-left: 3px solid var(--azul);
+    background: var(--fondo);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+  }
+  .nota p:last-child { margin-bottom: 0; }
+  .abierta { color: var(--verde); font-weight: 700; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.95rem;
+    margin: 8px 0 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tabla { overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { font-family: var(--display); font-size: 0.85rem; color: var(--texto-suave); }
+  .pie { color: var(--texto-suave); font-size: 0.85rem; margin-top: 24px; }
+  a { color: var(--azul); }
+  a:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+  @media (max-width: 480px) {
+    section { padding: 18px 16px 14px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="kicker">El Practicante · ASIG Honduras</p>
+    <h1>Guía de uso para el facilitador</h1>
+    <p>Tamara es una practicante que aprende de la sala. Vos abrís preguntas; cada participante le enseña desde su celular; vos leés lo que la sala piensa antes de dar el debrief. App publicada en <a href="https://tamarapracticante.floot.app">tamarapracticante.floot.app</a>. Versión del 30 de octubre de 2026.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="toc" aria-label="Secciones">
+    <a href="#direcciones">Direcciones</a>
+    <a href="#antes">Antes</a>
+    <a href="#durante">Durante</a>
+    <a href="#leer">Leer la sala</a>
+    <a href="#cierre">Cierre</a>
+    <a href="#varias">Cursos de varios días</a>
+    <a href="#demo">Link de demo</a>
+    <a href="#problemas">Si algo falla</a>
+  </nav>
+
+  <section id="direcciones">
+    <h2>Las tres pantallas</h2>
+    <div class="ruta">
+      <div><strong>Vos</strong> <code>tamarapracticante.floot.app/facilitador</code> <span>Consola: crear sesión, ventanas, expedientes, resumen de la sala, cierre.</span></div>
+      <div><strong>Sala</strong> <code>/proyector?code=XXXXX</code> <span>Para el proyector. Se abre desde el botón <em>Proyectar</em> de la consola. Sin nombres ni conversaciones.</span></div>
+      <div><strong>Celular</strong> <code>tamarapracticante.floot.app</code> <span>El participante entra con el código de 5 letras o escaneando el QR, y escribe su nombre.</span></div>
+    </div>
+    <p>El código no usa 0, O, 1 ni I para que se pueda dictar en voz alta.</p>
+  </section>
+
+  <section id="antes">
+    <h2>Antes del entrenamiento</h2>
+    <h3>1. Crear la sesión</h3>
+    <p>En <code>/facilitador</code>: nombre del entrenamiento y tu contraseña de facilitador. La consola queda guardada en ese navegador. El botón <em>Nueva sesión</em> solo borra la consola de ese navegador; no cierra la sesión.</p>
+    <p>Para retomar desde otra computadora: <em>Retomar una sesión existente</em> con la contraseña. Lista las últimas 30; los links de demo van al final con el prefijo «demo».</p>
+
+    <h3>2. Preparar las preguntas</h3>
+    <p>El <em>Banco de preguntas</em> trae ocho precargadas, por tema (Condiciones, Convicción, Error humano, Mitos, Percepción, Prerrequisitos, Reciprocidad). Es compartido entre sesiones. Cada pregunta tiene tres botones:</p>
+    <ul>
+      <li><strong>+</strong> la agrega a las ventanas de esta sesión, en borrador.</li>
+      <li><strong>▶</strong> la agrega y la abre ya.</li>
+      <li><strong>Papelera</strong> la quita del banco (de todas las sesiones).</li>
+    </ul>
+    <p>También podés escribir una pregunta propia en <em>Ventanas</em>. Ahí hay dos campos que los participantes nunca ven:</p>
+    <ul>
+      <li><strong>Indicación para Tamara</strong> (hasta 1 500 caracteres): qué buscar, hacia dónde empujar, qué no soltar. Tamara la sigue sin salirse de su carácter y sin mencionarla.</li>
+      <li><strong>Razonamiento medio</strong>: Tamara piensa más antes de responder en esa pregunta. Más lenta. Por defecto va en bajo.</li>
+    </ul>
+    <p>Las ventanas en borrador no aparecen en los celulares hasta que las abrís.</p>
+
+    <h3>3. Material del curso</h3>
+    <p>Biblioteca de enlaces (Drive, Wix) compartida entre sesiones. Lo que marcás con la casilla le llega a cada participante en su pantalla de cierre.</p>
+
+    <h3>4. Con nombres o ciega</h3>
+    <p>En la cabecera de la consola. <em>Ciega</em> te muestra «Participante 1, 2…» en lugar de los nombres, en la lista y en el expediente. Cambia solo lo que vos ves; el cierre personal de cada quien sigue llevando su nombre.</p>
+
+    <h3>5. Proyectar</h3>
+    <p>Abrí <em>Proyectar</em> en el proyector. Sin ventana abierta muestra el QR, el código y cuántas personas ya entraron.</p>
+  </section>
+
+  <section id="durante">
+    <h2>Durante</h2>
+    <h3>Cómo entra la gente</h3>
+    <p>Escanean el QR o escriben el código, leen la presentación de Tamara y ponen su nombre. El mismo celular vuelve solo a su chat si cierran la página. Si cambian de celular o borraron datos, entran con el mismo nombre y Tamara pregunta «¿Es usted, que vuelve a entrar?». Con <em>Sí, soy yo</em> recuperan su conversación.</p>
+
+    <h3>Ventanas</h3>
+    <ul>
+      <li>Hay <strong>una sola ventana abierta a la vez</strong>. Abrir una cierra la que estaba abierta. Una cerrada se puede <em>Reabrir</em>.</li>
+      <li>Al abrir una pregunta, el celular vibra, suena y Tamara la plantea: «[pregunta] ¿Me ayuda a entenderlo?».</li>
+      <li>El proyector muestra la pregunta en grande, «X de N ya respondieron» y, cuando pasa, «N personas ya cruzaron con Tamara».</li>
+      <li>Al cerrar la ventana, los celulares quedan en espera: «Practicante · esperando la siguiente pregunta».</li>
+    </ul>
+
+    <h3>Qué puede mandar el participante</h3>
+    <p>Texto (hasta 2 000 caracteres; Enter envía) o <strong>foto de su hoja</strong>. La foto se transcribe tal cual, sin corregir, y queda en su expediente con la etiqueta «Hoja transcrita». Si pierde la señal, el envío se reintenta solo y el texto no se borra.</p>
+
+    <h3>Cómo responde Tamara</h3>
+    <p>Trata de usted, dos oraciones cortas, una sola pregunta. Nunca felicita ni evalúa. Ve todo lo que esa persona dijo en ventanas anteriores de la sesión, así que señala contradicciones y le devuelve lo que ya iba del otro lado. Cuando cruza, el celular muestra a Tamara celebrando con «¡Cruzamos!» y en la consola la persona queda con <span class="abierta">✓ cruzó</span>. Ese marcador cuenta solo en ventanas de pregunta, no en recesos.</p>
+
+    <h3>Receso y almuerzo</h3>
+    <p>Los botones <em>Abrir receso</em> y <em>Abrir almuerzo</em> crean y abren una ventana libre. Tamara queda disponible para dudas sobre lo visto, con candados para que nadie la use de asistente general:</p>
+    <ul>
+      <li>Solo texto, hasta 500 caracteres, sin fotos.</li>
+      <li>12 preguntas por persona en esa ventana.</li>
+      <li>Solo habla del curso y de las preguntas ya trabajadas. Lo demás lo rechaza en una oración.</li>
+    </ul>
+    <p>Cerrala como cualquier ventana al volver.</p>
+  </section>
+
+  <section id="leer">
+    <h2>Leer la sala antes del debrief</h2>
+    <h3>Expediente</h3>
+    <p>Tocá un nombre en <em>Participantes</em>: toda su conversación, ventana por ventana, con las fotos ya transcritas. El número a la derecha es cuántos mensajes mandó.</p>
+
+    <h3>Resumen de la sala</h3>
+    <p>Botón <em>Resumen</em> junto a cada pregunta que ya tiene respuestas. Clasifica a cada persona por <strong>su respuesta más reciente</strong>, según dónde pone la causa:</p>
+    <div class="tabla">
+    <table>
+      <tr><th>Grupo</th><th>Qué agrupa</th></tr>
+      <tr><td>Culpa en la persona</td><td>Descuido, error humano, falta de capacitación de quien hizo la tarea.</td></tr>
+      <tr><td>Condiciones</td><td>Herramienta, equipo, prisa, presión, diseño de la tarea, lo que tenía o no a mano.</td></tr>
+      <tr><td>Sistema</td><td>Decisiones de la organización: supervisión, metas, presupuesto, reglas.</td></tr>
+      <tr><td>Otro</td><td>No responde la pregunta o no se puede clasificar.</td></tr>
+    </table>
+    </div>
+    <p>Trae hasta dos frases literales por grupo (sin nombres), una lectura de dos oraciones que marca quién se movió de Persona a Condiciones o Sistema durante la conversación, y una <strong>pregunta para lanzar a la sala</strong>. El modelo recibe las respuestas anónimas aunque la sesión sea con nombres.</p>
+    <p>El resumen se guarda y no se vuelve a pagar. Si entran respuestas nuevas, <em>Rehacer con las respuestas nuevas</em>.</p>
+  </section>
+
+  <section id="cierre">
+    <h2>Cierre</h2>
+    <p><em>Cerrar sesión</em> pide confirmación y hace esto, en orden:</p>
+    <ol>
+      <li>Cierra la ventana que estuviera abierta.</li>
+      <li>Tamara escribe un <strong>cierre personal</strong> para cada participante: tres o cuatro oraciones, en usted, con lo que esa persona le enseñó y dónde se movió, medido contra sí misma. Termina con una pregunta para llevarse al trabajo. Va en tandas de cuatro personas; con una sala llena tarda unos minutos y el botón muestra «Tamara está escribiendo los cierres…».</li>
+      <li>Marca la sesión como cerrada.</li>
+    </ol>
+    <p>El participante ve «Gracias, [nombre]», su cierre, el material marcado, el enlace a asighn.com y un espacio de preguntas que dura <strong>dos horas</strong> con los mismos candados del receso (12 preguntas, 500 caracteres, sin fotos). Después Tamara se despide.</p>
+    <div class="nota">
+      <p>Una sesión cerrada no se reabre y no admite entradas nuevas. Quien no alcanzó a conversar recibe un cierre corto fijo. Si el cierre falla a medio camino, la sesión queda abierta y podés volver a pulsar: los cierres ya escritos no se repiten.</p>
+    </div>
+    <p>En la consola, el cierre de cada persona aparece al final de su expediente bajo «Cierre de Tamara».</p>
+  </section>
+
+  <section id="varias">
+    <h2>Cursos de varios días</h2>
+    <p>La app no tiene «cursos»: la unidad es la sesión, un código. Una sesión cerrada no se reabre. Eso deja dos maneras de llevar un curso de varios días.</p>
+
+    <h3>A. Una sesión por día</h3>
+    <ul>
+      <li>Cada día código nuevo; la gente entra de nuevo con su nombre.</li>
+      <li>Tamara <strong>no recuerda el día anterior</strong>: su historial de cada persona vive dentro de la sesión.</li>
+      <li>Cierre personal y dos horas de preguntas cada día. Expedientes y resúmenes separados por día.</li>
+    </ul>
+
+    <h3>B. Una sola sesión para todo el curso (la que da continuidad)</h3>
+    <ul>
+      <li>Creás la sesión el día uno y la cerrás el último día.</li>
+      <li>Los celulares vuelven solos al mismo chat; quien cambie de teléfono entra con su nombre y «Sí, soy yo».</li>
+      <li>Tamara ve <strong>todo el rastro del curso</strong>: contradicciones entre días y el pie que ya cruzó la semana pasada.</li>
+      <li>Podés dejar cargadas en borrador las preguntas de los días siguientes; nadie las ve hasta que las abrís.</li>
+      <li>Entre un día y otro: cerrá la última ventana (nadie puede escribir) o dejá un <em>Receso</em> abierto (Tamara disponible con candados).</li>
+      <li>Un solo cierre personal al final y un solo espacio de dos horas.</li>
+    </ul>
+    <div class="nota">
+      <p>Lo que la ficha del 8 de octubre proponía y <strong>todavía no existe</strong>: que Tamara aplique lo aprendido entre sesiones y abra el día siguiente contando qué le pasó; un cierre parcial por día dentro de una misma sesión; un nombre de día en el proyector. Si lo querés, se construye sobre la opción B.</p>
+    </div>
+  </section>
+
+  <section id="demo">
+    <h2>Link de demo para un cliente</h2>
+    <p>En la pantalla de crear sesión, con tu contraseña: <em>Crear link de demo (1 hora)</em>. Copiá el link y mandalo.</p>
+    <ul>
+      <li>Conversación abierta, sin facilitador ni preguntas. Tamara abre con tu texto sobre para qué sirve la herramienta.</li>
+      <li>La hora corre desde el <strong>primer mensaje</strong> de quien use ese link. Varias personas con el mismo link comparten la hora.</li>
+      <li>Sin candados de caracteres ni de preguntas, con fotos. Tope silencioso de 150 mensajes por link.</li>
+      <li>Tamara solo habla de ASIG y de seguridad y salud ocupacional. No inventa datos ni busca afuera.</li>
+      <li>Aparece en tu lista de sesiones marcada como demo; podés abrirla para ver qué conversó el cliente.</li>
+    </ul>
+  </section>
+
+  <section id="problemas">
+    <h2>Si algo falla</h2>
+    <div class="tabla">
+    <table>
+      <tr><th>Lo que se ve</th><th>Qué pasa y qué hacer</th></tr>
+      <tr><td>«No hay ninguna pregunta abierta»</td><td>El participante escribió sin ventana abierta. Abrí la ventana.</td></tr>
+      <tr><td>«No encontramos su lugar en esta sesión»</td><td>El celular guardaba una entrada que ya no existe. Botón <em>Entrar de nuevo con el código</em> y vuelve a entrar con su nombre.</td></tr>
+      <tr><td>«Ya hay alguien llamado…»</td><td>Nombre repetido. Si es la misma persona, <em>Sí, soy yo</em>. Si no, que escriba su nombre completo.</td></tr>
+      <tr><td>«Sin señal… reintentando»</td><td>Red mala en planta. Se reintenta solo hasta seis veces; el texto no se pierde.</td></tr>
+      <tr><td>«Llegó al límite de preguntas por ahora»</td><td>12 preguntas por persona en receso o después del cierre. Es intencional.</td></tr>
+      <tr><td>«Contraseña de facilitador incorrecta»</td><td>La contraseña vive en el servidor (Floot, variable <code>FACILITATOR_PASSCODE</code>).</td></tr>
+      <tr><td>Tamara no responde</td><td>Clave de Anthropic en el servidor (<code>ANTHROPIC_API_KEY</code>). Revisar en Floot.</td></tr>
+      <tr><td>El proyector no actualiza</td><td>Recargá la pestaña; se reconecta solo.</td></tr>
+    </table>
+    </div>
+    <p>Tamara responde con Claude Sonnet 5.5. Cada mensaje de un participante es una llamada; el cierre, una por persona; el resumen, una por ventana. El esfuerzo bajo por defecto es la parte barata; el medio cuesta y tarda más, por eso va por pregunta.</p>
+  </section>
+
+  <p class="pie">Guía escrita a partir del código publicado el 30 de octubre de 2026. El flujo completo de pregunta, resumen y cierre todavía no se ha corrido con una sala real: conviene un ensayo con dos o tres celulares antes del primer entrenamiento.</p>
+</main>
+</body>
+</html>
