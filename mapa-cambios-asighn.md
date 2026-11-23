@@ -10,7 +10,7 @@ Revisión en vivo del 23-nov-2026: escritorio a 1440 px y móvil (iPhone). Pági
 | # | Dónde | Qué está mal | Cambio |
 |---|---|---|---|
 | 1.1 | Menú **móvil** → Descargas | Salen públicos: Taller de Comisiones Mixtas SeaJoy, SAEC, Webinar EPP Covid, Cementos del Norte, Evento Ferreterías, CHICO. En escritorio no se ven | Editor → Menús y páginas → cada una → **Ocultar del menú**. ⚑ Si esos clientes todavía descargan cosas, crear un solo botón «Portal de clientes» con contraseña |
-| 1.2 | Sitemap (lo que lee Google) | `/culturaseajoy`, `/comisionesseajoy` y `/descargas` están indexadas | Cada página → Configuración → SEO → desactivar **«Permitir que los motores de búsqueda indexen esta página»**. ⚑ O borrarlas si ya no sirven |
+| 1.2 | Sitemap (lo que lee Google) | `/culturaseajoy`, `/comisionesseajoy` y `/descargas` están indexadas | ✅ **Hecho 23-nov** por API: `noindex` publicado en las tres. ⚑ Borrarlas si ya no sirven |
 | 1.3 | Encabezado **móvil** | «Sus mejores aliados para que la seguridad de su empresa no ocurra por accidente» repite el hero («La seguridad no ocurre por accidente») | Editor móvil → encabezado → quitar esa línea; dejar solo el logo |
 | 1.4 | Asesorías en Higiene y Seguridad | «Sistemas de Gestión basados en **OHSAS 18001**»: la norma fue retirada en 2021. Este hallazgo sigue abierto desde el 06-sep | Cambiar a **ISO 45001** |
 | 1.5 | Carrusel «Clientes que han confiado en ASIG» | Logos de Cervecería Hondureña, Pepsi, Gildan, DHL, Pollo Rey, Jaremar… La regla del canon para el sitio es que no se nombra a ningún cliente sin autorización escrita | ⚑ Confirmar que tienes la autorización de cada uno. Si no, se retira el logo |
@@ -31,7 +31,7 @@ Revisión en vivo del 23-nov-2026: escritorio a 1440 px y móvil (iPhone). Pági
 | 2.10 | Blog → «Salga de la cancha», primeras líneas | llamemosles · articulo · proximas · fuí | llamémosles · artículo · próximas · fui |
 | 2.11 | Blog → «Su pirámide…», primera línea | ¿Me permite hacerle una pregunta? le pido… | ¿Me permite hacerle una pregunta? Le pido… |
 
-Solo revisé las primeras líneas de cada artículo. ⚑ Conviene pasarles una revisión ortográfica completa.
+✅ 2.9, 2.10 y 2.11 **hechos 23-nov** por API y publicados. Solo revisé las primeras líneas de cada artículo. ⚑ Conviene pasarles una revisión ortográfica completa.
 
 ## 3. Diseño: escritorio
 
@@ -70,5 +70,5 @@ Solo revisé las primeras líneas de cada artículo. ⚑ Conviene pasarles una r
 ## 6. No toqué
 
 - **Submenú de Servicios.** Gemini propone renombrarlo según la grilla de la página principal. Tú ya decidiste otra cosa el 06-sep: una arquitectura **Flagship / Troya / Comunes** que reemplaza la lista plana del sitio. Cuando se rehaga el submenú, va con esa estructura.
-- **Cifras publicadas** (+50, 4,762, 868, 110, 17 años): son dato tuyo vigente. Solo cambia el formato en 2.7.
+- **Cifras publicadas**: desde el 23-nov viven en la colección de Wix **«Cifras del sitio»** (`CifrasWeb`, fila `vigente`): +80 · 4,809 · 952 · 110 · 1,019, tomadas de la columna Vigente de Drive (estudios queda en 110 por decisión tuya). Falta conectar los números de la página a esa colección en el editor; eso reemplaza el punto 2.7.
 - **Textos nuevos.** Todo lo de arriba es corrección o reacomodo. Si quieres reescribir el hero o las tarjetas, eso se redacta aparte con la voz de ASIG.
