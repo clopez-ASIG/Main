@@ -1,0 +1,53 @@
+---
+/* Pie
+   Propósito: contacto siempre a mano y datos legales.
+   Reglas: contacto solo del bloque oficial de asig-canon/references/identidad.md. Dirección física pendiente de decisión. */
+import Pendiente from './Pendiente.astro';
+const anio = new Date().getFullYear();
+---
+<footer class="pie">
+  <div class="contenedor pie__grilla">
+    <div>
+      <img src="/img/marca/ASIG_Logo_H_Blanco.png" alt="ASIG Honduras" width="150" height="51" />
+      <p class="pie__base">Con base en San Pedro Sula y cobertura a nivel nacional.</p>
+    </div>
+    <div>
+      <h2 class="pie__titulo">Contacto</h2>
+      <ul>
+        <li><a href="tel:+50499068668">+504 9906-8668</a></li>
+        <li><a href="https://wa.me/50499068668">WhatsApp</a></li>
+        <li><a href="mailto:consultas@asighn.com">consultas@asighn.com</a></li>
+        <li><a href="/contacto">Formulario de contacto</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="pie__titulo">El sitio</h2>
+      <ul>
+        <li><a href="/metodologia">Metodología</a></li>
+        <li><a href="/servicios">Servicios</a></li>
+        <li><a href="/articulos-y-novedades">Artículos</a></li>
+        <li><a href="https://www.linkedin.com/company/asig-honduras/">LinkedIn</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="contenedor pie__legal">
+    <p>© {anio} EHS Honduras S. de R.L., que opera como ASIG Honduras.</p>
+    <Pendiente texto="¿La dirección física va en el pie y en Contacto? (pendiente 8)" />
+  </div>
+</footer>
+
+<style>
+  .pie { background: var(--navy); color: var(--borde); padding: var(--e-64) 0 var(--e-32); }
+  .pie__grilla { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--e-48); }
+  .pie img { width: 150px; height: auto; margin-bottom: var(--e-16); }
+  .pie__base { font-size: var(--t-14); }
+  .pie__titulo { font-size: var(--t-16); color: var(--blanco); margin-bottom: var(--e-16); }
+  .pie ul { list-style: none; margin: 0; padding: 0; }
+  .pie li { margin-bottom: var(--e-8); }
+  .pie a { color: var(--borde); text-decoration: none; }
+  .pie a:hover { color: var(--blanco); text-decoration: underline; }
+  .pie__legal { border-top: 1px solid rgba(220, 228, 238, 0.2); margin-top: var(--e-48); padding-top: var(--e-24); font-size: var(--t-14); }
+  @media (max-width: 767px) {
+    .pie__grilla { grid-template-columns: 1fr; gap: var(--e-32); }
+  }
+</style>

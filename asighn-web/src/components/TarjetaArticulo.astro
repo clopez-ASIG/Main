@@ -1,0 +1,30 @@
+---
+/* TarjetaArticulo
+   Propósito: un artículo como muestra del criterio de ASIG.
+   Anatomía: portada propia 16:9, título, resumen de dos líneas, autor y tiempo de lectura.
+   Reglas: los artículos en primera persona de Christian llevan su nombre visible. */
+interface Props { titulo: string; resumen: string; portada: string; href: string; autor?: string; minutos?: number; fecha: Date }
+const { titulo, resumen, portada, href, autor, minutos, fecha } = Astro.props;
+const fechaTexto = new Intl.DateTimeFormat('es-HN', { day: 'numeric', month: 'long', year: 'numeric' }).format(fecha);
+---
+<article class="art">
+  <img src={portada} alt="" loading="lazy" />
+  <div class="art__cuerpo">
+    <h3><a href={href}>{titulo}</a></h3>
+    <p>{resumen}</p>
+    <p class="art__meta">{[autor && `Por ${autor}`, fechaTexto, minutos && `${minutos} min de lectura`].filter(Boolean).join(' · ')}</p>
+  </div>
+</article>
+
+<style>
+  .art { position: relative; background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--r-4); overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease; }
+  .art:hover { transform: translateY(-2px); }
+  .art img { aspect-ratio: 16/9; width: 100%; object-fit: cover; }
+  .art__cuerpo { padding: var(--e-24); display: flex; flex-direction: column; flex-grow: 1; }
+  .art h3 { font-size: var(--t-18); }
+  .art h3 a { color: var(--navy); text-decoration: none; }
+  .art h3 a::after { content: ''; position: absolute; inset: 0; }
+  .art h3 a:hover { color: var(--azul); }
+  .art p { color: var(--gris-texto); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .art .art__meta { margin: auto 0 0; font-size: var(--t-14); color: var(--gris-secundario); display: block; }
+</style>

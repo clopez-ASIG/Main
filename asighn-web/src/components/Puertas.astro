@@ -1,0 +1,33 @@
+---
+/* Puertas
+   Propósito: la sección más importante del Inicio. Una entrada por visitante, sin nombrarlo como persona.
+   Anatomía: tres bloques; la frase del visitante, una línea de ASIG y un botón.
+   Reglas: el visitante se reconoce en la primera línea. Un solo botón por puerta. */
+import Boton from './Boton.astro';
+interface Puerta { dice: string; respuesta: string; href: string; boton: string }
+interface Props { puertas: Puerta[] }
+const { puertas } = Astro.props;
+---
+<ul class="puertas">
+  {puertas.map((p) => (
+    <li class="puertas__item">
+      <h3>{p.dice}</h3>
+      <p>{p.respuesta}</p>
+      <Boton href={p.href} variante="secundario">{p.boton}</Boton>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .puertas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); }
+  .puertas__item {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--r-4);
+    padding: var(--e-32);
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  .puertas__item h3 { font-size: var(--t-22); }
+  .puertas__item p { color: var(--gris-texto); flex-grow: 1; margin-bottom: var(--e-24); }
+  @media (max-width: 1023px) { .puertas { grid-template-columns: 1fr; } }
+</style>

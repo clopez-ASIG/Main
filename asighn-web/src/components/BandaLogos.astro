@@ -1,0 +1,26 @@
+---
+/* BandaLogos
+   Propósito: cartera de clientes, sin frases.
+   Anatomía: grilla estática de 4 a 6 por fila, logos en gris monocromo y de tamaño uniforme.
+   Reglas: solo clientes autorizados (pendiente 7). Sin carrusel automático. */
+import Pendiente from './Pendiente.astro';
+interface Logo { nombre: string; src: string }
+interface Props { logos: Logo[]; espacios?: number }
+const { logos, espacios = 6 } = Astro.props;
+const vacios = logos.length ? 0 : espacios;
+---
+<div class="banda">
+  {logos.length === 0 && <Pendiente texto="lista de clientes cuyo logo puede ir en la banda, en versión monocroma (pendiente 7)." />}
+  <ul>
+    {logos.map((l) => <li><img src={l.src} alt={l.nombre} loading="lazy" /></li>)}
+    {Array.from({ length: vacios }).map(() => <li class="banda__vacio" aria-hidden="true">Logo</li>)}
+  </ul>
+</div>
+
+<style>
+  .banda ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--e-24); }
+  .banda li { height: 64px; display: flex; align-items: center; justify-content: center; }
+  .banda img { max-height: 48px; width: auto; filter: grayscale(1) opacity(.7); }
+  .banda__vacio { border: 1px dashed var(--gris-medio); color: var(--gris-medio); font-size: var(--t-14); border-radius: var(--r-4); }
+  @media (max-width: 767px) { .banda ul { grid-template-columns: repeat(3, 1fr); gap: var(--e-16); } }
+</style>

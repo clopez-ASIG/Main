@@ -1,0 +1,30 @@
+---
+/* Cierre
+   Propósito: la oferta al final de la página, nunca arriba.
+   Anatomía: banda navy, una frase, contacto y un botón.
+   Reglas: una sola acción con peso. Contacto del bloque oficial del canon. */
+import Boton from './Boton.astro';
+interface Props { frase: string; boton: { href: string; texto: string } }
+const { frase, boton } = Astro.props;
+---
+<section class="cierre">
+  <div class="contenedor cierre__fila">
+    <div>
+      <h2>{frase}</h2>
+      <p>
+        <a href="tel:+50499068668">+504 9906-8668</a> ·
+        <a href="https://wa.me/50499068668">WhatsApp</a> ·
+        <a href="mailto:consultas@asighn.com">consultas@asighn.com</a>
+      </p>
+    </div>
+    <Boton href={boton.href} variante="navy">{boton.texto}</Boton>
+  </div>
+</section>
+
+<style>
+  .cierre { background: var(--navy); color: var(--blanco); padding: var(--e-64) 0; border-bottom: 1px solid rgba(220, 228, 238, 0.2); }
+  .cierre__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-32); flex-wrap: wrap; }
+  .cierre h2 { color: var(--blanco); margin-bottom: var(--e-8); }
+  .cierre p { margin: 0; color: var(--borde); }
+  .cierre a { color: var(--blanco); }
+</style>

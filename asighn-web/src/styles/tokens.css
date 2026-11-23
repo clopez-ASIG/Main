@@ -1,0 +1,62 @@
+/* Tokens del sitio. Fuente: docs/documentacion.md §5 y asig-canon/references/marca-visual.md.
+   Ningún componente usa un valor que no esté acá (implementation.md 1.1). */
+
+@font-face { font-family: 'Raleway'; src: url('/fonts/raleway-latin-600-normal.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Raleway'; src: url('/fonts/raleway-latin-700-normal.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito-sans-latin-400-normal.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito-sans-latin-600-normal.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+
+:root {
+  /* Color */
+  --navy: #0C1B30;
+  --azul: #0070C4;
+  --celeste: #0086FC;
+  --verde: #72D353;
+  --fondo-claro: #F1F5FA;
+  --relleno-suave: #EAF0F6;
+  --borde: #DCE4EE;
+  --gris-medio: #9FB0C4;
+  --gris-secundario: #6B7A8F;
+  --gris-texto: #5B6B7A;
+  --texto: #2A3545;
+  --blanco: #FFFFFF;
+  --overlay: rgba(12, 27, 48, 0.65);
+  --pendiente: #FFF3B0; /* solo en vista previa: lo que falta decidir */
+
+  /* Tipografía */
+  --f-titulo: 'Raleway', 'Century Gothic', sans-serif;
+  --f-cuerpo: 'Nunito Sans', Arial, sans-serif;
+  --t-48: 48px;
+  --t-36: 36px;
+  --t-28: 28px;
+  --t-22: 22px;
+  --t-18: 18px;
+  --t-16: 16px;
+  --t-14: 14px;
+
+  /* Espaciado, base 8 */
+  --e-8: 8px;
+  --e-16: 16px;
+  --e-24: 24px;
+  --e-32: 32px;
+  --e-48: 48px;
+  --e-64: 64px;
+  --e-96: 96px;
+
+  /* Radios y sombra */
+  --r-0: 0;
+  --r-4: 4px;
+  --sombra: 0 8px 24px rgba(12, 27, 48, 0.08);
+
+  /* Anchos */
+  --ancho: 1200px;
+  --ancho-texto: 680px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --t-48: 36px;
+    --t-36: 28px;
+    --t-28: 22px;
+  }
+}

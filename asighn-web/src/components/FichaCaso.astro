@@ -1,0 +1,38 @@
+---
+/* FichaCaso
+   Propósito: un caso real, anónimo, con resultado.
+   Anatomía: sector · problema · qué hizo ASIG · resultado · instrumento.
+   Reglas: sin nombre de cliente salvo autorización. Un campo vacío se marca pendiente; no se inventa. */
+import Pendiente from './Pendiente.astro';
+interface Props {
+  sector: string; problema: string; intervencion: string; resultado: string; instrumento: string; aprobado: boolean;
+}
+const p = Astro.props;
+const filas = [
+  ['Sector', p.sector],
+  ['El problema', p.problema],
+  ['Qué hizo ASIG', p.intervencion],
+  ['Resultado', p.resultado],
+  ['Instrumento', p.instrumento],
+] as const;
+---
+<article class="caso">
+  {!p.aprobado && <Pendiente texto="texto del caso sin aprobar (pendiente 5)." />}
+  <dl>
+    {filas.map(([etiqueta, valor]) => (
+      <div>
+        <dt>{etiqueta}</dt>
+        <dd>{valor || <Pendiente texto="falta este dato." enLinea />}</dd>
+      </div>
+    ))}
+  </dl>
+</article>
+
+<style>
+  .caso { background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--r-4); padding: var(--e-32); }
+  .caso dl { margin: 0; display: grid; gap: var(--e-16); }
+  .caso dl div { display: grid; grid-template-columns: 160px 1fr; gap: var(--e-16); }
+  .caso dt { font-family: var(--f-titulo); font-weight: 600; color: var(--navy); }
+  .caso dd { margin: 0; color: var(--texto); }
+  @media (max-width: 767px) { .caso dl div { grid-template-columns: 1fr; gap: 0; } }
+</style>

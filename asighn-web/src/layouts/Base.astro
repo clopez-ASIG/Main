@@ -1,0 +1,32 @@
+---
+import '../styles/base.css';
+import Cabecera from '../components/Cabecera.astro';
+import Pie from '../components/Pie.astro';
+interface Props { titulo: string; descripcion: string; noindex?: boolean }
+const { titulo, descripcion, noindex = false } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/img/marca/Isotipo_Original.png" />
+    <link rel="preload" href="/fonts/raleway-latin-700-normal.ttf" as="font" type="font/ttf" crossorigin />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body>
+    <a class="visually-hidden" href="#contenido">Ir al contenido</a>
+    <Cabecera />
+    <main id="contenido"><slot /></main>
+    <Pie />
+    <script>
+      const obs = new IntersectionObserver((entradas) => {
+        for (const e of entradas) if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+      }, { rootMargin: '0px 0px -10% 0px' });
+      document.querySelectorAll('.entra').forEach((el) => obs.observe(el));
+    </script>
+  </body>
+</html>

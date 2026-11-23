@@ -1,0 +1,36 @@
+---
+/* Boton
+   Propósito: la acción de cada bloque. Primario, secundario o sobre navy.
+   Estados: reposo, hover celeste, foco visible, presionado.
+   Reglas de contenido: imperativo cordial (Agendar 30 minutos, Cotizar, Ver el método). Nunca "Click aquí" ni "Más info". */
+interface Props {
+  href: string;
+  variante?: 'primario' | 'secundario' | 'navy' | 'navy-secundario';
+}
+const { href, variante = 'primario' } = Astro.props;
+---
+<a class={`boton boton--${variante}`} href={href}><slot /></a>
+
+<style>
+  .boton {
+    display: inline-block;
+    font-family: var(--f-titulo);
+    font-weight: 600;
+    font-size: var(--t-16);
+    line-height: 1.2;
+    text-decoration: none;
+    padding: var(--e-16) var(--e-24);
+    border-radius: var(--r-4);
+    border: 2px solid transparent;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .boton:active { transform: translateY(1px); }
+  .boton--primario { background: var(--azul); color: var(--blanco); }
+  .boton--primario:hover { background: var(--celeste); color: var(--blanco); }
+  .boton--secundario { background: transparent; color: var(--azul); border-color: var(--azul); }
+  .boton--secundario:hover { color: var(--celeste); border-color: var(--celeste); }
+  .boton--navy { background: var(--blanco); color: var(--navy); }
+  .boton--navy:hover { background: var(--relleno-suave); color: var(--navy); }
+  .boton--navy-secundario { background: transparent; color: var(--blanco); border-color: var(--blanco); }
+  .boton--navy-secundario:hover { border-color: var(--celeste); color: var(--blanco); }
+</style>

@@ -1,0 +1,60 @@
+---
+/* Autodiagnostico
+   Propósito: la única interacción del Inicio. Cinco preguntas de sí o no sobre la operación del visitante y un resultado en una frase.
+   Anatomía: lista de preguntas con dos opciones cada una, resultado y botón Agendar.
+   Estados: sin script muestra las preguntas y el botón; con script calcula el resultado al responder.
+   Reglas: preguntas y lógica las aprueba Christian antes de publicar (pendiente 9). */
+import Boton from './Boton.astro';
+import Pendiente from './Pendiente.astro';
+const preguntas = [
+  '¿Su empresa tiene más de 10 empleados y una Comisión Mixta de Higiene y Seguridad registrada ante la Secretaría de Trabajo?',
+  '¿Sabe, por una medición con equipo calibrado, cuánto ruido, luz o calor reciben sus puestos de trabajo?',
+  '¿Cuando ocurre un accidente, la investigación llega hasta la condición que lo hizo posible y no se queda en el trabajador?',
+  '¿Sus contratistas llegan con la formación en sus trabajos de riesgo verificada antes de empezar?',
+  '¿Sabe si su gente ve la seguridad de la misma forma que su liderazgo?',
+];
+---
+<div class="auto" data-auto>
+  <h3>Cinco preguntas sobre su operación</h3>
+  <Pendiente texto="preguntas y lógica en borrador; las aprueba Christian antes de publicar." />
+  <ol class="auto__lista">
+    {preguntas.map((q, i) => (
+      <li>
+        <fieldset>
+          <legend>{q}</legend>
+          <label><input type="radio" name={`p${i}`} value="si" /> Sí</label>
+          <label><input type="radio" name={`p${i}`} value="no" /> No</label>
+        </fieldset>
+      </li>
+    ))}
+  </ol>
+  <p class="auto__resultado" data-resultado aria-live="polite"></p>
+  <Boton href="/diagnostico">Agendar 30 minutos</Boton>
+</div>
+
+<script>
+  const raiz = document.querySelector<HTMLElement>('[data-auto]');
+  if (raiz) {
+    const salida = raiz.querySelector<HTMLElement>('[data-resultado]')!;
+    const total = raiz.querySelectorAll('fieldset').length;
+    raiz.addEventListener('change', () => {
+      const respondidas = raiz.querySelectorAll('input:checked');
+      if (respondidas.length < total) { salida.textContent = ''; return; }
+      const noes = [...respondidas].filter((r) => (r as HTMLInputElement).value === 'no').length;
+      salida.textContent =
+        noes === 0 ? 'Su operación tiene la base. En 30 minutos revisamos con usted qué sigue.'
+        : noes <= 2 ? 'Tiene uno o dos frentes abiertos. En 30 minutos le decimos por cuál empezar.'
+        : 'Tiene varios frentes abiertos. Conviene ordenarlos antes de invertir, y esa ruta se arma en 30 minutos.';
+    });
+  }
+</script>
+
+<style>
+  .auto { background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--r-4); padding: var(--e-32); }
+  .auto__lista { list-style: none; margin: 0 0 var(--e-24); padding: 0; display: grid; gap: var(--e-16); }
+  fieldset { border: 0; margin: 0; padding: 0 0 var(--e-16); border-bottom: 1px solid var(--relleno-suave); }
+  legend { font-weight: 600; margin-bottom: var(--e-8); padding: 0; }
+  label { display: inline-flex; align-items: center; gap: var(--e-8); margin-right: var(--e-24); min-height: 44px; cursor: pointer; }
+  input { width: 20px; height: 20px; accent-color: var(--azul); }
+  .auto__resultado { font-family: var(--f-titulo); font-weight: 600; font-size: var(--t-18); color: var(--navy); min-height: 1.6em; }
+</style>

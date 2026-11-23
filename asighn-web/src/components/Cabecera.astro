@@ -1,0 +1,68 @@
+---
+/* Cabecera
+   Propósito: identidad y menú. Seis destinos y el botón Agendar 30 min (documentacion.md §6).
+   Estados: escritorio en línea; móvil con menú plegable sin script (details/summary).
+   Reglas: Contacto no va aquí; vive en el pie y en el botón secundario del hero. */
+const enlaces = [
+  { href: '/metodologia', texto: 'Metodología' },
+  { href: '/servicios', texto: 'Servicios' },
+  { href: '/medicion-de-cultura', texto: 'Cultura de Seguridad' },
+  { href: '/casos', texto: 'Casos' },
+  { href: '/clientes', texto: 'Clientes' },
+  { href: '/articulos-y-novedades', texto: 'Artículos' },
+];
+const actual = Astro.url.pathname;
+---
+<header class="cabecera">
+  <div class="contenedor cabecera__fila">
+    <a class="cabecera__logo" href="/" aria-label="ASIG Honduras, inicio">
+      <img src="/img/marca/0_ASIG_Logo_H_Original.png" alt="ASIG Honduras" width="150" height="50" />
+    </a>
+    <nav class="cabecera__nav" aria-label="Principal">
+      <ul>
+        {enlaces.map((e) => (
+          <li><a href={e.href} aria-current={actual === e.href ? 'page' : undefined}>{e.texto}</a></li>
+        ))}
+      </ul>
+      <a class="cabecera__agendar" href="/agenda">Agendar 30 min</a>
+    </nav>
+    <details class="cabecera__movil">
+      <summary>Menú</summary>
+      <ul>
+        {enlaces.map((e) => <li><a href={e.href}>{e.texto}</a></li>)}
+        <li><a href="/contacto">Contacto</a></li>
+      </ul>
+    </details>
+    <a class="cabecera__agendar cabecera__agendar--movil" href="/agenda">Agendar</a>
+  </div>
+</header>
+
+<style>
+  .cabecera { background: var(--blanco); border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 10; }
+  .cabecera__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-24); min-height: 72px; }
+  .cabecera__logo img { width: 150px; height: auto; }
+  .cabecera__nav { display: flex; align-items: center; gap: var(--e-24); }
+  .cabecera__nav ul { display: flex; gap: var(--e-24); list-style: none; margin: 0; padding: 0; }
+  .cabecera__nav a:not(.cabecera__agendar) { color: var(--texto); text-decoration: none; font-weight: 600; font-size: var(--t-14); }
+  .cabecera__nav a:not(.cabecera__agendar):hover, .cabecera__nav a[aria-current='page'] { color: var(--azul); }
+  .cabecera__agendar {
+    background: var(--azul); color: var(--blanco); text-decoration: none; font-family: var(--f-titulo); font-weight: 600;
+    font-size: var(--t-14); padding: var(--e-8) var(--e-16); border-radius: var(--r-4); white-space: nowrap;
+  }
+  .cabecera__agendar:hover { background: var(--celeste); color: var(--blanco); }
+  .cabecera__movil, .cabecera__agendar--movil { display: none; }
+
+  @media (max-width: 1023px) {
+    .cabecera__nav { display: none; }
+    .cabecera__movil, .cabecera__agendar--movil { display: block; }
+    .cabecera__fila { flex-wrap: wrap; gap: var(--e-16); }
+    .cabecera__logo { margin-right: auto; }
+    .cabecera__logo img { width: 120px; }
+    .cabecera__movil { order: 3; }
+    .cabecera__movil summary { cursor: pointer; font-weight: 600; color: var(--navy); list-style: none; padding: var(--e-8) 0; }
+    .cabecera__movil summary::-webkit-details-marker { display: none; }
+    .cabecera__movil ul { list-style: none; margin: 0; padding: var(--e-8) 0 var(--e-16); }
+    .cabecera__movil li a { display: block; padding: var(--e-8) 0; color: var(--texto); text-decoration: none; font-weight: 600; }
+    .cabecera__movil[open] { flex-basis: 100%; order: 4; }
+  }
+</style>

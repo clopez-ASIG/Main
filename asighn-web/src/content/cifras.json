@@ -1,0 +1,14 @@
+[
+  { "id": "clientes", "indicador": "Clientes atendidos", "valor": 83, "unidad": "clientes atendidos", "corte": "2026-11-23" },
+  { "id": "personas", "indicador": "Personas capacitadas", "valor": 4809, "unidad": "personas capacitadas", "corte": "2026-11-23" },
+  { "id": "participaciones", "indicador": "Participaciones en formación", "valor": 8415, "unidad": "participaciones en formación", "corte": "2026-11-23" },
+  { "id": "horas", "indicador": "Horas-persona de formación", "valor": 37286, "unidad": "horas-persona de formación", "corte": "2026-11-23" },
+  { "id": "estudios-higiene", "indicador": "Estudios de higiene", "valor": 68, "unidad": "estudios de higiene", "corte": "2026-11-23" },
+  { "id": "areas", "indicador": "Áreas evaluadas en higiene", "valor": 952, "unidad": "áreas evaluadas en estudios de higiene", "corte": "2026-11-23" },
+  { "id": "puntos", "indicador": "Puntos de medición en higiene", "valor": 3020, "unidad": "puntos de medición", "corte": "2026-11-23" },
+  { "id": "auditorias", "indicador": "Auditorías", "valor": 113, "unidad": "auditorías", "corte": "2026-11-23" },
+  { "id": "informes", "indicador": "Informes técnicos entregados", "valor": 110, "unidad": "estudios técnicos entregados", "corte": "2026-11-23", "nota": "El Sheet marca 240 como candidato; Christian decidió mantener 110 en el sitio (23 nov 2026)." },
+  { "id": "respuestas-cultura", "indicador": "Respuestas en medición de cultura", "valor": 1019, "unidad": "respuestas registradas", "corte": "2026-11-23" },
+  { "id": "niveles-cultura", "indicador": "Niveles de la medición de cultura", "valor": 2, "unidad": "niveles medidos: operativo y liderazgo", "corte": "2026-11-23", "nota": "Diseño del instrumento, no cifra de operación." },
+  { "id": "rubros-cultura", "indicador": "Rubros de negocio evaluados en cultura", "valor": 4, "unidad": "rubros de negocio evaluados", "corte": "2026-11-23", "nota": "Publicado hoy en asighn.com; no está en el Sheet. Confirmar con Christian." }
+]

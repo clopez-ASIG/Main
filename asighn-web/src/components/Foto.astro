@@ -1,0 +1,34 @@
+---
+/* Foto
+   Propósito: foto de campo propia de ASIG. Mientras no esté elegida, ocupa su lugar con la descripción de la foto ideal.
+   Anatomía: imagen 16:9 o 3:2 (o un bloque del mismo tamaño con la descripción).
+   Reglas: siempre propia, nunca stock ni bancos abiertos (implementation.md 1b.4). La lista de fotos pedidas vive en docs/fotos.md. */
+interface Props {
+  src?: string;
+  alt: string;
+  pide: string;
+  proporcion?: '16/9' | '3/2' | '4/5';
+  clase?: string;
+}
+const { src, alt, pide, proporcion = '3/2', clase = '' } = Astro.props;
+---
+{src
+  ? <img class={`foto ${clase}`} src={src} alt={alt} loading="lazy" style={`aspect-ratio:${proporcion}`} />
+  : <div class={`foto foto--vacia ${clase}`} role="img" aria-label={alt} style={`aspect-ratio:${proporcion}`}>
+      <span>Foto: {pide}</span>
+    </div>}
+
+<style>
+  .foto { width: 100%; object-fit: cover; }
+  .foto--vacia {
+    display: flex;
+    align-items: flex-end;
+    background:
+      repeating-linear-gradient(135deg, var(--relleno-suave) 0 12px, var(--borde) 12px 24px);
+    color: var(--gris-texto);
+    font-size: var(--t-14);
+    line-height: 1.4;
+    padding: var(--e-16);
+  }
+  .foto--vacia span { background: var(--blanco); padding: var(--e-8); max-width: 36ch; }
+</style>

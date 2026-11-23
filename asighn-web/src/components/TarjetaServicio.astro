@@ -1,0 +1,30 @@
+---
+/* TarjetaServicio
+   Propósito: un servicio en una frase específica y un entregable concreto.
+   Anatomía: foto propia 3:2, título Raleway, frase, entregable, enlace.
+   Reglas: sin icono genérico. La frase dice qué se mide o se hace, no adjetivos. */
+import Foto from './Foto.astro';
+interface Props { titulo: string; frase: string; entregable: string; href: string; pideFoto: string; foto?: string }
+const { titulo, frase, entregable, href, pideFoto, foto } = Astro.props;
+---
+<article class="tarjeta">
+  <Foto src={foto} alt={titulo} pide={pideFoto} proporcion="3/2" />
+  <div class="tarjeta__cuerpo">
+    <h3><a href={href}>{titulo}</a></h3>
+    <p>{frase}</p>
+    <p class="tarjeta__entregable"><span>Usted recibe</span>{entregable}</p>
+  </div>
+</article>
+
+<style>
+  .tarjeta { background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--r-4); overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease; }
+  .tarjeta:hover { transform: translateY(-2px); }
+  .tarjeta__cuerpo { padding: var(--e-24); }
+  .tarjeta h3 a { color: var(--navy); text-decoration: none; }
+  .tarjeta h3 a::after { content: ''; position: absolute; inset: 0; }
+  .tarjeta { position: relative; }
+  .tarjeta h3 a:hover { color: var(--azul); }
+  .tarjeta p { color: var(--gris-texto); font-size: var(--t-16); }
+  .tarjeta__entregable { color: var(--texto) !important; margin-bottom: 0; }
+  .tarjeta__entregable span { display: block; font-family: var(--f-titulo); font-weight: 600; font-size: var(--t-14); color: var(--azul); }
+</style>

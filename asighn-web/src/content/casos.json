@@ -1,0 +1,35 @@
+[
+  {
+    "id": "cultura-nacional",
+    "orden": 1,
+    "destacado": true,
+    "sector": "",
+    "problema": "",
+    "intervencion": "Medición de cultura de seguridad en 16 ciudades, a nivel operativo y de liderazgo.",
+    "resultado": "",
+    "instrumento": "Calibración de Percepciones, n=624",
+    "aprobado": false
+  },
+  {
+    "id": "fpsico",
+    "orden": 2,
+    "destacado": false,
+    "sector": "",
+    "problema": "",
+    "intervencion": "Evaluación de riesgos psicosociales.",
+    "resultado": "",
+    "instrumento": "FPSICO 4.1 (INSST, España), n≈291",
+    "aprobado": false
+  },
+  {
+    "id": "altura-contratistas",
+    "orden": 3,
+    "destacado": false,
+    "sector": "Multinacional",
+    "problema": "",
+    "intervencion": "Recertificación de contratistas en trabajo en altura.",
+    "resultado": "",
+    "instrumento": "",
+    "aprobado": false
+  }
+]

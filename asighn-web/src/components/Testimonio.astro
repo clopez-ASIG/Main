@@ -1,0 +1,18 @@
+---
+/* Testimonio
+   Propósito: una frase concreta de un cliente real.
+   Anatomía: cita, nombre, cargo, empresa. Sin foto si no la hay; nunca avatar genérico.
+   Reglas: la colección empieza vacía; la sección que los usa se oculta si no hay ninguno (pendiente 6). */
+interface Props { cita: string; nombre: string; cargo: string; empresa: string }
+const { cita, nombre, cargo, empresa } = Astro.props;
+---
+<figure class="testimonio">
+  <blockquote>“{cita}”</blockquote>
+  <figcaption>{nombre}, {cargo}, {empresa}</figcaption>
+</figure>
+
+<style>
+  .testimonio { margin: 0; padding: var(--e-32); background: var(--fondo-claro); border-radius: var(--r-4); }
+  blockquote { margin: 0 0 var(--e-16); font-family: var(--f-titulo); font-size: var(--t-22); font-weight: 600; color: var(--navy); line-height: 1.4; }
+  figcaption { color: var(--gris-texto); font-size: var(--t-14); }
+</style>

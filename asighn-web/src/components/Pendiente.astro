@@ -1,0 +1,27 @@
+---
+/* Pendiente
+   Propósito: marcar en la vista previa lo que falta decidir o conseguir. Nada se inventa (implementation.md 0.7).
+   Anatomía: caja ámbar con el texto de lo que falta.
+   Reglas: solo existe en vista previa. Con PUBLICAR=true no se renderiza; si alguno queda, la página no está lista. */
+interface Props { texto: string; enLinea?: boolean }
+const { texto, enLinea = false } = Astro.props;
+const publicar = import.meta.env.PUBLICAR === 'true';
+---
+{!publicar && (enLinea
+  ? <span class="pendiente pendiente--linea">Pendiente: {texto}</span>
+  : <p class="pendiente">Pendiente: {texto}</p>)}
+
+<style>
+  .pendiente {
+    background: var(--pendiente);
+    color: var(--navy);
+    font-family: var(--f-cuerpo);
+    font-size: var(--t-14);
+    line-height: 1.4;
+    padding: var(--e-8) var(--e-16);
+    border-radius: var(--r-4);
+    margin: var(--e-8) 0;
+    max-width: var(--ancho-texto);
+  }
+  .pendiente--linea { display: inline-block; margin: 0; }
+</style>
