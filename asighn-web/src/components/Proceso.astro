@@ -1,32 +1,49 @@
 ---
 /* Proceso
-   Propósito: el método en pasos.
-   Anatomía: <ol> sin número visible; el orden lo da la posición. Nombre del paso y una frase.
+   Propósito: el método en pasos, dibujado como la escala de un instrumento de medición.
+   Anatomía: una regla graduada con una marca por paso; debajo, el nombre del paso y una frase. <ol> sin número visible: el orden lo da la posición.
    Reglas: máximo cinco pasos. Horizontal en escritorio, vertical en móvil. */
 interface Paso { nombre: string; frase: string }
 interface Props { pasos: Paso[] }
 const { pasos } = Astro.props;
 ---
-<ol class="proceso" style={`--n:${pasos.length}`}>
-  {pasos.map((p) => (
-    <li>
-      <h3>{p.nombre}</h3>
-      <p>{p.frase}</p>
-    </li>
-  ))}
-</ol>
+<div class="proceso">
+  <div class="proceso__regla" aria-hidden="true"></div>
+  <ol style={`--n:${pasos.length}`}>
+    {pasos.map((p) => (
+      <li>
+        <h3>{p.nombre}</h3>
+        <p>{p.frase}</p>
+      </li>
+    ))}
+  </ol>
+</div>
 
 <style>
-  .proceso { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: var(--e-24); counter-reset: none; }
-  .proceso li { border-top: 4px solid var(--azul); padding-top: var(--e-24); position: relative; }
-  .proceso li:not(:last-child)::after {
-    content: ''; position: absolute; top: -4px; right: calc(-1 * var(--e-24)); width: var(--e-24); height: 4px; background: var(--borde);
+  .proceso { position: relative; margin-top: var(--e-48); }
+  /* Regla: marcas menores cada 1/20 del ancho, marcas mayores en cada paso. */
+  .proceso__regla {
+    height: 36px; margin-bottom: var(--e-24);
+    border-bottom: 3px solid var(--navy);
+    background:
+      repeating-linear-gradient(90deg, var(--navy) 0 2px, transparent 2px calc(100% / 20)) bottom / 100% 12px no-repeat;
   }
-  .proceso h3 { font-size: var(--t-18); margin-bottom: var(--e-8); }
-  .proceso p { color: var(--gris-texto); font-size: var(--t-16); }
+  .proceso ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: var(--e-24); }
+  .proceso li { position: relative; padding-top: var(--e-8); }
+  .proceso li::before {
+    content: ''; position: absolute; top: calc(-1 * var(--e-24) - 39px); left: 0;
+    width: 4px; height: 36px; background: var(--azul);
+  }
+  .proceso li::after {
+    content: ''; position: absolute; top: calc(-1 * var(--e-24) - 51px); left: -6px;
+    width: 16px; height: 16px; background: var(--amarillo); clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+  .proceso h3 { font-size: var(--t-22); font-weight: 700; margin-bottom: var(--e-8); }
+  .proceso p { color: var(--gris-texto); margin: 0; }
   @media (max-width: 1023px) {
-    .proceso { grid-template-columns: 1fr; gap: 0; }
-    .proceso li { border-top: 0; border-left: 4px solid var(--azul); padding: 0 0 var(--e-24) var(--e-24); }
-    .proceso li:not(:last-child)::after { display: none; }
+    .proceso__regla { display: none; }
+    .proceso ol { grid-template-columns: 1fr; gap: var(--e-32); border-left: 3px solid var(--navy); padding-left: var(--e-24); }
+    .proceso li::before { top: 12px; left: calc(-1 * var(--e-24) - 3px); width: 16px; height: 3px; }
+    .proceso li::after { top: 6px; left: calc(-1 * var(--e-24) - 22px); clip-path: polygon(0 0, 100% 50%, 0 100%); }
   }
 </style>

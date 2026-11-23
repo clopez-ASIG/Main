@@ -35,9 +35,11 @@ a:hover { color: var(--celeste); }
 .seccion { padding: var(--e-96) 0; }
 .seccion--clara { background: var(--fondo-claro); }
 .seccion--navy { background: var(--navy); color: var(--blanco); }
+.seccion--reticula { background: var(--navy) var(--reticula) center / 1200px auto; background-blend-mode: soft-light; }
+.amarillo { color: var(--amarillo); }
 .seccion--navy h2, .seccion--navy h3 { color: var(--blanco); }
 .intro { font-size: var(--t-18); color: var(--gris-texto); }
-.seccion--navy .intro { color: var(--borde); }
+.seccion--navy .intro, .seccion--reticula .intro { color: var(--borde); }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 

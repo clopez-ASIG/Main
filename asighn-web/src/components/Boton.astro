@@ -5,7 +5,7 @@
    Reglas de contenido: imperativo cordial (Agendar 30 minutos, Cotizar, Ver el método). Nunca "Click aquí" ni "Más info". */
 interface Props {
   href: string;
-  variante?: 'primario' | 'secundario' | 'navy' | 'navy-secundario';
+  variante?: 'primario' | 'secundario' | 'navy' | 'navy-secundario' | 'amarillo';
 }
 const { href, variante = 'primario' } = Astro.props;
 ---
@@ -32,5 +32,7 @@ const { href, variante = 'primario' } = Astro.props;
   .boton--navy { background: var(--blanco); color: var(--navy); }
   .boton--navy:hover { background: var(--relleno-suave); color: var(--navy); }
   .boton--navy-secundario { background: transparent; color: var(--blanco); border-color: var(--blanco); }
-  .boton--navy-secundario:hover { border-color: var(--celeste); color: var(--blanco); }
+  .boton--navy-secundario:hover { border-color: var(--amarillo); color: var(--amarillo); }
+  .boton--amarillo { background: var(--amarillo); color: var(--navy); }
+  .boton--amarillo:hover { background: var(--blanco); color: var(--navy); }
 </style>

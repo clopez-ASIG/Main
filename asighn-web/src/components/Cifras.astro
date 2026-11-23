@@ -1,15 +1,15 @@
 ---
 /* Cifras
-   Propósito: prueba cuantificada, sin adorno.
-   Anatomía: fila de 3 o 4; número Raleway 700 48, unidad Nunito Sans 16 debajo.
+   Propósito: la cifra como lámina (Brief de gusto visual): un número enorme y una etiqueta chica.
+   Anatomía: fila de 3 o 4; número Raleway 700 a escala de cartel, unidad Nunito Sans debajo. Variante banda: fondo azul que corta en diagonal.
    Reglas: sin contador animado. Todo número sale de src/content/cifras.json, que se carga desde el Sheet del canon. */
 import { getEntry } from 'astro:content';
-interface Props { ids: string[]; sobreNavy?: boolean; titulo?: string; columnas?: number }
-const { ids, sobreNavy = false, titulo = 'ASIG en cifras', columnas = ids.length } = Astro.props;
+interface Props { ids: string[]; variante?: 'banda' | 'navy' | 'claro'; titulo?: string; columnas?: number }
+const { ids, variante = 'claro', titulo = 'ASIG en cifras', columnas = ids.length } = Astro.props;
 const entradas = await Promise.all(ids.map((id) => getEntry('cifras', id)));
 const formato = new Intl.NumberFormat('en-US');
 ---
-<div class={`cifras ${sobreNavy ? 'cifras--navy' : ''}`}>
+<div class={`cifras cifras--${variante}`}>
   <h2 class="visually-hidden">{titulo}</h2>
   <ul style={`--columnas:${columnas}`}>
     {entradas.map((c) => c && (
@@ -23,12 +23,22 @@ const formato = new Intl.NumberFormat('en-US');
 
 <style>
   .cifras ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--columnas), 1fr); gap: var(--e-32); }
-  .cifras li { display: flex; flex-direction: column; gap: var(--e-8); }
-  .cifras__numero { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-48); line-height: 1; color: var(--navy); font-variant-numeric: lining-nums tabular-nums; }
-  .cifras__unidad { font-size: var(--t-16); color: var(--gris-texto); max-width: 20ch; }
-  .cifras--navy .cifras__numero { color: var(--blanco); }
+  .cifras li { display: flex; flex-direction: column; gap: var(--e-8); min-width: 0; }
+  .cifras__numero {
+    font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-cifra); line-height: .9; letter-spacing: -0.03em;
+    color: var(--azul); font-variant-numeric: lining-nums tabular-nums;
+  }
+  .cifras__unidad { font-size: var(--t-16); color: var(--gris-texto); max-width: 18ch; line-height: 1.4; }
+
+  .cifras--banda li { padding-left: var(--e-24); border-left: 4px solid var(--amarillo); }
+  .cifras--banda .cifras__numero { color: var(--blanco); }
+  .cifras--banda .cifras__unidad { color: var(--blanco); opacity: .9; }
+
+  .cifras--navy .cifras__numero { color: var(--verde); font-size: clamp(40px, 4.2vw, 60px); }
   .cifras--navy .cifras__unidad { color: var(--borde); }
-  @media (max-width: 767px) {
-    .cifras ul { grid-template-columns: repeat(min(var(--columnas), 2), 1fr); gap: var(--e-32) var(--e-24); }
+
+  @media (max-width: 900px) {
+    .cifras ul { grid-template-columns: repeat(min(var(--columnas), 2), 1fr); gap: var(--e-48) var(--e-24); }
+    .cifras--banda li { padding-left: var(--e-16); }
   }
 </style>

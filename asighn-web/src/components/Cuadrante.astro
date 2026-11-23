@@ -1,0 +1,62 @@
+---
+/* Cuadrante
+   Propósito: el instrumento con forma, como el Safety Loop de Krause Bell. Cada Calibración de Percepciones cierra con su cuadrante (Sello v3.1, 8.3).
+   Anatomía: matriz 2x2 con encabezados. Filas: lo que la gente percibe (acertada o errónea). Columnas: lo que pasa en la operación (procedimiento cumplido o incumplido). Al elegir una celda se lee qué significa.
+   Estados: sin script se ven las cuatro celdas con su nombre; con script, la elegida se pinta de amarillo y muestra su lectura.
+   Reglas: la lectura de cada celda la aprueba Christian antes de publicar. */
+import Pendiente from './Pendiente.astro';
+const celdas = [
+  { nombre: 'Acertada y cumplido', lectura: 'Lo que la gente cree coincide con lo que existe, y lo que existe se cumple.' },
+  { nombre: 'Acertada e incumplido', lectura: 'La gente ve con claridad que lo escrito no se cumple.' },
+  { nombre: 'Errónea y cumplido', lectura: 'El procedimiento se cumple, pero la gente no lo percibe así.' },
+  { nombre: 'Errónea e incumplido', lectura: 'Se cree que se cumple, y no se cumple.' },
+];
+---
+<div class="cuadrante" data-cuadrante>
+  <div class="cuadrante__tabla" role="group" aria-label="Cuadrante de la Calibración de Percepciones">
+    <span></span>
+    <span class="cuadrante__col">Procedimiento cumplido</span>
+    <span class="cuadrante__col">Procedimiento incumplido</span>
+    <span class="cuadrante__fila">Percepción acertada</span>
+    {celdas.slice(0, 2).map((c) => (
+      <button type="button" class="cuadrante__celda" data-lectura={c.lectura} aria-pressed="false">{c.nombre}</button>
+    ))}
+    <span class="cuadrante__fila">Percepción errónea</span>
+    {celdas.slice(2).map((c, i) => (
+      <button type="button" class="cuadrante__celda" data-lectura={c.lectura} aria-pressed={i === 1 ? 'true' : 'false'}>{c.nombre}</button>
+    ))}
+  </div>
+  <p class="cuadrante__lectura" data-salida aria-live="polite">{celdas[3].lectura}</p>
+  <Pendiente texto="la lectura de cada celda la aprueba Christian." />
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cuadrante]').forEach((raiz) => {
+    const salida = raiz.querySelector<HTMLElement>('[data-salida]')!;
+    raiz.querySelectorAll<HTMLButtonElement>('.cuadrante__celda').forEach((b) => {
+      b.addEventListener('click', () => {
+        raiz.querySelectorAll('.cuadrante__celda').forEach((o) => o.setAttribute('aria-pressed', 'false'));
+        b.setAttribute('aria-pressed', 'true');
+        salida.textContent = b.dataset.lectura ?? '';
+      });
+    });
+  });
+</script>
+
+<style>
+  .cuadrante__tabla { display: grid; grid-template-columns: auto 1fr 1fr; gap: 4px; align-items: stretch; }
+  .cuadrante__col, .cuadrante__fila { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-14); color: var(--amarillo); line-height: 1.25; }
+  .cuadrante__col { padding: 0 var(--e-8) var(--e-8); }
+  .cuadrante__fila { display: flex; align-items: center; padding-right: var(--e-16); max-width: 11ch; }
+  .cuadrante__celda {
+    aspect-ratio: 1.4 / 1; cursor: pointer; text-align: left;
+    font-family: var(--f-cuerpo); font-size: var(--t-14); line-height: 1.35;
+    color: var(--borde); background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(159, 176, 196, 0.25); border-radius: 0;
+    padding: var(--e-16); display: flex; align-items: flex-end;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .cuadrante__celda:hover { background: rgba(255, 255, 255, 0.14); color: var(--blanco); }
+  .cuadrante__celda[aria-pressed='true'] { background: var(--amarillo); color: var(--navy); border-color: var(--amarillo); font-weight: 600; }
+  .cuadrante__lectura { font-family: var(--f-titulo); font-weight: 600; font-size: var(--t-22); line-height: 1.3; color: var(--blanco); margin: var(--e-24) 0 var(--e-8); min-height: 2.6em; }
+</style>

@@ -16,7 +16,7 @@ const actual = Astro.url.pathname;
 <header class="cabecera">
   <div class="contenedor cabecera__fila">
     <a class="cabecera__logo" href="/" aria-label="ASIG Honduras, inicio">
-      <img src="/img/marca/0_ASIG_Logo_H_Original.png" alt="ASIG Honduras" width="150" height="50" />
+      <img src="/img/marca/ASIG_Logo_H_Colores_Blanco.png" alt="ASIG Honduras" width="150" height="51" />
     </a>
     <nav class="cabecera__nav" aria-label="Principal">
       <ul>
@@ -38,18 +38,18 @@ const actual = Astro.url.pathname;
 </header>
 
 <style>
-  .cabecera { background: var(--blanco); border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 10; }
-  .cabecera__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-24); min-height: 72px; }
+  .cabecera { background: var(--navy) var(--reticula) center / 1200px auto; background-blend-mode: soft-light; border-bottom: 1px solid rgba(159, 176, 196, 0.18); position: sticky; top: 0; z-index: 10; }
+  .cabecera__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-24); min-height: 80px; }
   .cabecera__logo img { width: 150px; height: auto; }
-  .cabecera__nav { display: flex; align-items: center; gap: var(--e-24); }
+  .cabecera__nav { display: flex; align-items: center; gap: var(--e-32); }
   .cabecera__nav ul { display: flex; gap: var(--e-24); list-style: none; margin: 0; padding: 0; }
-  .cabecera__nav a:not(.cabecera__agendar) { color: var(--texto); text-decoration: none; font-weight: 600; font-size: var(--t-14); }
-  .cabecera__nav a:not(.cabecera__agendar):hover, .cabecera__nav a[aria-current='page'] { color: var(--azul); }
+  .cabecera__nav a:not(.cabecera__agendar) { color: var(--borde); text-decoration: none; font-weight: 600; font-size: var(--t-14); padding: var(--e-8) 0; border-bottom: 2px solid transparent; transition: color .15s ease, border-color .15s ease; }
+  .cabecera__nav a:not(.cabecera__agendar):hover, .cabecera__nav a[aria-current='page'] { color: var(--blanco); border-bottom-color: var(--amarillo); }
   .cabecera__agendar {
-    background: var(--azul); color: var(--blanco); text-decoration: none; font-family: var(--f-titulo); font-weight: 600;
+    background: var(--amarillo); color: var(--navy); text-decoration: none; font-family: var(--f-titulo); font-weight: 700;
     font-size: var(--t-14); padding: var(--e-8) var(--e-16); border-radius: var(--r-4); white-space: nowrap;
   }
-  .cabecera__agendar:hover { background: var(--celeste); color: var(--blanco); }
+  .cabecera__agendar:hover { background: var(--blanco); color: var(--navy); }
   .cabecera__movil, .cabecera__agendar--movil { display: none; }
 
   @media (max-width: 1023px) {
@@ -59,10 +59,10 @@ const actual = Astro.url.pathname;
     .cabecera__logo { margin-right: auto; }
     .cabecera__logo img { width: 120px; }
     .cabecera__movil { order: 3; }
-    .cabecera__movil summary { cursor: pointer; font-weight: 600; color: var(--navy); list-style: none; padding: var(--e-8) 0; }
+    .cabecera__movil summary { cursor: pointer; font-weight: 600; color: var(--blanco); list-style: none; padding: var(--e-8) 0; }
     .cabecera__movil summary::-webkit-details-marker { display: none; }
     .cabecera__movil ul { list-style: none; margin: 0; padding: var(--e-8) 0 var(--e-16); }
-    .cabecera__movil li a { display: block; padding: var(--e-8) 0; color: var(--texto); text-decoration: none; font-weight: 600; }
+    .cabecera__movil li a { display: block; padding: var(--e-8) 0; color: var(--blanco); text-decoration: none; font-weight: 600; }
     .cabecera__movil[open] { flex-basis: 100%; order: 4; }
   }
 </style>

@@ -12,6 +12,9 @@
   --azul: #0070C4;
   --celeste: #0086FC;
   --verde: #72D353;
+  --amarillo: #FFD800; /* la cuña y el titular, como en el sitio actual: es el piso (Christian, 23 nov 2026) */
+  --navy-2: #13284A;
+  --reticula: url('/img/marca/reticula.svg');
   --fondo-claro: #F1F5FA;
   --relleno-suave: #EAF0F6;
   --borde: #DCE4EE;
@@ -26,6 +29,8 @@
   /* Tipografía */
   --f-titulo: 'Raleway', 'Century Gothic', sans-serif;
   --f-cuerpo: 'Nunito Sans', Arial, sans-serif;
+  --t-hero: clamp(44px, 6vw, 84px);
+  --t-cifra: clamp(52px, 6vw, 88px);
   --t-48: 48px;
   --t-36: 36px;
   --t-28: 28px;

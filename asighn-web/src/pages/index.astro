@@ -5,7 +5,9 @@ import Hero from '../components/Hero.astro';
 import Cifras from '../components/Cifras.astro';
 import Puertas from '../components/Puertas.astro';
 import Autodiagnostico from '../components/Autodiagnostico.astro';
+import Pilares from '../components/Pilares.astro';
 import TarjetaServicio from '../components/TarjetaServicio.astro';
+import Cuadrante from '../components/Cuadrante.astro';
 import Proceso from '../components/Proceso.astro';
 import BandaLogos from '../components/BandaLogos.astro';
 import FichaCaso from '../components/FichaCaso.astro';
@@ -41,6 +43,25 @@ const puertas = [
   },
 ];
 
+// Textos de los pilares 1 y 2: copy vigente de asighn.com, escrito por Christian. El 3 se pide a Madre.
+const pilares = [
+  {
+    nombre: 'Verificamos antes de enseñar',
+    texto: 'Cada contenido se prepara según el riesgo real de su operación, no un temario genérico. Lo que armamos se valida contra fuentes primarias: OSHA, NIOSH, ACGIH, NFPA.',
+    pideFoto: 'consulta de una norma o ficha técnica en sitio, junto al equipo que se va a medir',
+  },
+  {
+    nombre: 'Entrenamos con las manos',
+    texto: 'Prácticas reales, simulacros, realidad virtual y simuladores. Sus equipos comprenden el riesgo haciendo, sin cargarlos de teoría que no pueden aplicar.',
+    pideFoto: 'participante en el simulador o con el visor de realidad virtual',
+  },
+  {
+    nombre: 'Cumplimiento no es prevención',
+    texto: '',
+    pideFoto: 'recorrido en planta, mirando la condición real y no el papel',
+  },
+];
+
 const pasos = [
   { nombre: 'Diagnóstico', frase: 'Entendemos su operación antes de proponer. No llegamos con conclusiones hechas.' },
   { nombre: 'Medición', frase: 'Medimos con equipo calibrado y declaramos la fuente de cada parámetro.' },
@@ -54,33 +75,49 @@ const pasos = [
   descripcion="Consultoría en seguridad ocupacional, higiene industrial medible y cultura de seguridad en Honduras. Instrumentos, no diapositivas."
 >
   <Hero
-    titulo="La seguridad no ocurre por accidente."
+    linea1="La seguridad"
+    linea2="no ocurre por accidente."
     subtitulo="Modernizamos la seguridad ocupacional con instrumentos, no con diapositivas."
-    pideFoto="medición en planta, con el instrumento en mano y la operación al fondo (ver docs/fotos.md, foto 1)"
+    pideFoto="medición en planta con el instrumento en mano y la operación al fondo (docs/fotos.md, foto 1)"
     primario={{ href: '/agenda', texto: 'Agendar 30 minutos' }}
     secundario={{ href: '/contacto', texto: 'Cotizar' }}
   />
 
-  <section class="seccion seccion--cifras">
+  <section class="banda-cifras">
     <div class="contenedor">
-      <Cifras ids={['clientes', 'personas', 'areas', 'informes']} />
+      <Cifras ids={['clientes', 'personas', 'areas', 'informes']} variante="banda" />
     </div>
   </section>
 
-  <section class="seccion seccion--clara entra">
+  <section class="seccion">
     <div class="contenedor">
-      <h2>¿Por dónde empieza usted?</h2>
-      <p class="intro">Llegan a ASIG por tres caminos distintos. Elija el que se parezca a su caso.</p>
+      <h2 class="titulo-grande">¿Por dónde empieza usted?</h2>
       <Puertas puertas={puertas} />
-      <div class="auto-envoltura">
-        <Autodiagnostico />
-      </div>
     </div>
   </section>
 
-  <section class="seccion entra">
+  <section class="seccion seccion--reticula">
+    <div class="contenedor dos-col">
+      <div>
+        <h2 class="titulo-grande">Cinco preguntas antes de llamarnos.</h2>
+        <p class="intro">Lo que una empresa en Honduras necesita tener resuelto, en cinco respuestas de sí o no. Cada “no” es un frente abierto.</p>
+      </div>
+      <Autodiagnostico />
+    </div>
+  </section>
+
+  <section class="seccion seccion--clara">
     <div class="contenedor">
-      <h2>Cada servicio declara qué mide y contra qué fuente.</h2>
+      <h2 class="titulo-grande">Que no nos necesiten para entender sus riesgos.</h2>
+      <p class="intro">Esa es la promesa. Tres pilares la sostienen.</p>
+      <Pendiente texto="documentacion.md (2 nov) dice que el pilar 3 no se imprime sin aprobación; el Sello v3.1 (15 nov) ya lo aprueba. Confirmar." />
+      <Pilares pilares={pilares} />
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="contenedor">
+      <h2 class="titulo-grande">Cada servicio declara qué mide y contra qué fuente.</h2>
       <p class="intro">Cuando el reglamento nacional no cubre un parámetro, se declara la fuente supletoria utilizada y por qué aplica a ese caso.</p>
       <div class="grilla-servicios">
         {servicios.map((s) => (
@@ -91,28 +128,31 @@ const pasos = [
     </div>
   </section>
 
-  <section class="seccion seccion--navy flagship entra">
+  <section class="seccion flagship">
     <div class="contenedor flagship__grilla">
       <div>
-        <h2>Su liderazgo y su gente no ven la seguridad igual.</h2>
+        <h2 class="titulo-grande">Su liderazgo y su gente no ven la seguridad igual.</h2>
         <p class="intro">Antes de aplicar el instrumento documentamos lo que su organización hace y escuchamos a los trabajadores. Después medimos en dos niveles, operativo y liderazgo, y leemos uno contra el otro: una brecha entre lo que existe y lo que se percibe es un hallazgo.</p>
-        <p class="intro">La Calibración de Percepciones es un instrumento propio de ASIG. Cada medición cierra con su cuadrante: percepción acertada o errónea, procedimiento cumplido o incumplido.</p>
-        <Boton href="/medicion-de-cultura" variante="navy-secundario">Conocer la medición</Boton>
+        <Cifras ids={['respuestas-cultura', 'niveles-cultura', 'rubros-cultura']} variante="navy" titulo="La medición de cultura en cifras" />
+        <div class="flagship__boton"><Boton href="/medicion-de-cultura" variante="amarillo">Conocer la Medición de Cultura</Boton></div>
       </div>
-      <Cifras ids={['respuestas-cultura', 'niveles-cultura', 'rubros-cultura']} sobreNavy titulo="La medición de cultura en cifras" columnas={1} />
+      <div>
+        <p class="flagship__nota">Cada medición cierra con su cuadrante. Elija uno.</p>
+        <Cuadrante />
+      </div>
     </div>
   </section>
 
-  <section class="seccion entra">
+  <section class="seccion">
     <div class="contenedor">
-      <h2>Primero entendemos, después medimos, al final verificamos.</h2>
+      <h2 class="titulo-grande">Primero entendemos. Después medimos. Al final verificamos.</h2>
       <Pendiente texto="nombres de los pasos del proceso en borrador (pendiente 3)." />
       <Proceso pasos={pasos} />
       <p class="enlace-final"><a href="/metodologia">Ver el método completo</a></p>
     </div>
   </section>
 
-  <section class="seccion seccion--clara entra">
+  <section class="seccion seccion--clara">
     <div class="contenedor">
       <h2>Clientes atendidos</h2>
       <BandaLogos logos={[]} />
@@ -120,7 +160,7 @@ const pasos = [
   </section>
 
   {casoDestacado && (
-    <section class="seccion entra">
+    <section class="seccion">
       <div class="contenedor caso-envoltura">
         <h2>Un caso de medición de cultura</h2>
         <FichaCaso {...casoDestacado.data} />
@@ -129,9 +169,9 @@ const pasos = [
     </section>
   )}
 
-  <section class="seccion seccion--clara entra">
+  <section class="seccion seccion--reticula">
     <div class="contenedor">
-      <h2>Ideas que cuestionan las creencias heredadas</h2>
+      <h2 class="titulo-grande">Ideas que cuestionan las creencias heredadas</h2>
       <div class="grilla-articulos">
         {articulos.map((a) => (
           <TarjetaArticulo
@@ -145,7 +185,7 @@ const pasos = [
           />
         ))}
       </div>
-      <p class="enlace-final"><a href="/articulos-y-novedades">Ver todos los artículos</a></p>
+      <p class="enlace-final enlace-final--navy"><a href="/articulos-y-novedades">Ver todos los artículos</a></p>
     </div>
   </section>
 
@@ -153,19 +193,46 @@ const pasos = [
 </Base>
 
 <style>
-  .seccion--cifras { padding: var(--e-64) 0; border-bottom: 1px solid var(--borde); }
-  .auto-envoltura { margin-top: var(--e-48); max-width: 820px; }
-  .grilla-servicios { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); margin-top: var(--e-32); }
-  .grilla-articulos { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); margin-top: var(--e-32); }
-  .enlace-final { margin-top: var(--e-32); font-weight: 600; }
-  .flagship__grilla { display: grid; grid-template-columns: 3fr 2fr; gap: var(--e-64); align-items: center; }
-  .flagship .boton { margin-top: var(--e-16); }
+  .titulo-grande { font-size: clamp(34px, 4.6vw, 60px); line-height: 1.05; letter-spacing: -0.02em; max-width: 20ch; margin-bottom: var(--e-24); }
+  .seccion--reticula .titulo-grande, .flagship .titulo-grande { color: var(--blanco); }
+  .seccion .intro { margin-bottom: var(--e-48); }
+
+  /* Banda de cifras: azul, cortada en diagonal arriba, como la cuña. */
+  .banda-cifras {
+    background: var(--azul);
+    padding: calc(var(--e-96) + var(--e-32)) 0 var(--e-96);
+    margin-top: calc(-1 * var(--e-64));
+    position: relative; z-index: 2;
+    clip-path: polygon(0 var(--e-64), 100% 0, 100% 100%, 0 100%);
+  }
+
+  .dos-col { display: grid; grid-template-columns: 5fr 6fr; gap: var(--e-64); align-items: start; }
+
+  .grilla-servicios { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); }
+  .seccion:not(.seccion--clara) .grilla-servicios :global(.servicio) { background: var(--fondo-claro); }
+  .grilla-articulos { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); margin-top: var(--e-16); }
+  .enlace-final { margin-top: var(--e-32); font-weight: 700; font-family: var(--f-titulo); }
+  .enlace-final--navy a { color: var(--amarillo); }
+
+  /* Flagship: navy con la franja diagonal del sitio actual. */
+  .flagship { position: relative; overflow: hidden; background: var(--navy); color: var(--blanco); }
+  .flagship::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 8%; width: 46%;
+    background: var(--azul); opacity: .35; clip-path: polygon(0 0, 62% 0, 100% 100%, 38% 100%);
+  }
+  .flagship__grilla { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-64); align-items: center; }
+  .flagship .intro { color: var(--borde); }
+  .flagship__boton { margin-top: var(--e-48); }
+  .flagship__nota { font-family: var(--f-titulo); font-weight: 600; color: var(--borde); margin-bottom: var(--e-16); }
+
   .caso-envoltura :global(.caso) { max-width: 880px; }
+
   @media (max-width: 1023px) {
     .grilla-servicios, .grilla-articulos { grid-template-columns: repeat(2, 1fr); }
-    .flagship__grilla { grid-template-columns: 1fr; gap: var(--e-48); }
+    .flagship__grilla, .dos-col { grid-template-columns: 1fr; gap: var(--e-48); }
   }
   @media (max-width: 767px) {
     .grilla-servicios, .grilla-articulos { grid-template-columns: 1fr; }
+    .banda-cifras { margin-top: calc(-1 * var(--e-32)); clip-path: polygon(0 var(--e-32), 100% 0, 100% 100%, 0 100%); padding-top: var(--e-96); }
   }
 </style>
