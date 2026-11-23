@@ -6,7 +6,8 @@
     "frase": "Ruido, iluminación, estrés térmico, partículas y químicos, medidos con equipo calibrado y con la fuente de cada parámetro declarada en el informe.",
     "entregable": "Valor por punto y su ubicación en un mapa del área, no solo el promedio.",
     "slug": "/asesorias-en-higiene-y-seguridad",
-    "foto": "Sonómetro o luxómetro en uso, en planta, con la lectura visible"
+    "foto": "Sonómetro o luxómetro en uso, en planta, con la lectura visible",
+    "imagen": "/img/campo/servicio-higiene-lux.webp"
   },
   {
     "id": "investigacion",
@@ -15,7 +16,8 @@
     "frase": "Cada hallazgo se coteja contra el procedimiento, el permiso y la instrucción, y se lleva a la condición que lo hizo posible.",
     "entregable": "Resultados por patrón, explicados a quien va a corregir.",
     "slug": "/asesorias-en-higiene-y-seguridad",
-    "foto": "Recorrido de evidencia en sitio: alguien revisando un permiso de trabajo junto al equipo involucrado"
+    "foto": "Recorrido de evidencia en sitio: alguien revisando un permiso de trabajo junto al equipo involucrado",
+    "imagen": "/img/campo/servicio-investigacion.webp"
   },
   {
     "id": "auditorias",
@@ -24,7 +26,8 @@
     "frase": "Legales, de cliente y de estándares internacionales, con la rigurosidad de una casa externa y desde el lado de la empresa auditada.",
     "entregable": "Lo que el sistema necesita, lo que funciona y los próximos pasos.",
     "slug": "/asesorias-en-higiene-y-seguridad",
-    "foto": "Auditoría en planta: lista de verificación en mano frente a una instalación real"
+    "foto": "Auditoría en planta: lista de verificación en mano frente a una instalación real",
+    "imagen": "/img/campo/servicio-auditoria-bloqueo.webp"
   },
   {
     "id": "capacitaciones",
@@ -33,7 +36,8 @@
     "frase": "Cada curso se diseña con la realidad de su operación: qué trabajos se hacen, con qué herramientas y en qué condiciones.",
     "entregable": "Práctica con simuladores, realidad virtual y ejercicios en sitio.",
     "slug": "/capacitacionesyentrenamientos",
-    "foto": "Participante con visor de realidad virtual o en simulador de manejo, en plena práctica"
+    "foto": "Participante con visor de realidad virtual o en simulador de manejo, en plena práctica",
+    "imagen": "/img/campo/servicio-capacitacion.webp"
   },
   {
     "id": "ambiente",
@@ -42,7 +46,8 @@
     "frase": "Licencias, ICMA y controles operacionales ante MIAMBIENTE, sostenidos con criterio técnico y no solo como trámite.",
     "entregable": "Informe de cumplimiento listo para presentar.",
     "slug": "/sostenibilidadyambiente",
-    "foto": "Inspección ambiental en campo: punto de descarga, bodega de residuos o monitoreo"
+    "foto": "Inspección ambiental en campo: punto de descarga, bodega de residuos o monitoreo",
+    "imagen": "/img/campo/servicio-ambiente.webp"
   },
   {
     "id": "sistemas",
@@ -51,6 +56,7 @@
     "frase": "Preparación y acompañamiento para auditorías ISO, con la salida acordada desde la firma: hasta dónde acompaña ASIG y cuándo el sistema queda solo en sus manos.",
     "entregable": "Sistema documentado y equipo preparado para la auditoría.",
     "slug": "/sistemasdegestion",
-    "foto": "Sesión de trabajo con el equipo del cliente revisando documentación del sistema"
+    "foto": "Sesión de trabajo con el equipo del cliente revisando documentación del sistema",
+    "imagen": "/img/campo/servicio-sistemas.webp"
   }
 ]

@@ -23,6 +23,7 @@ const servicios = defineCollection({
     entregable: z.string(),
     slug: z.string(),
     foto: z.string(),
+    imagen: z.string().optional(),
   }),
 });
 

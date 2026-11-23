@@ -49,16 +49,19 @@ const pilares = [
     nombre: 'Verificamos antes de enseñar',
     texto: 'Cada contenido se prepara según el riesgo real de su operación, no un temario genérico. Lo que armamos se valida contra fuentes primarias: OSHA, NIOSH, ACGIH, NFPA.',
     pideFoto: 'consulta de una norma o ficha técnica en sitio, junto al equipo que se va a medir',
+    foto: '/img/campo/pilar-lecturas-por-punto.webp',
   },
   {
     nombre: 'Entrenamos con las manos',
     texto: 'Prácticas reales, simulacros, realidad virtual y simuladores. Sus equipos comprenden el riesgo haciendo, sin cargarlos de teoría que no pueden aplicar.',
     pideFoto: 'participante en el simulador o con el visor de realidad virtual',
+    foto: '/img/campo/pilar-manos.webp',
   },
   {
     nombre: 'Cumplimiento no es prevención',
     texto: '',
     pideFoto: 'recorrido en planta, mirando la condición real y no el papel',
+    foto: '/img/campo/pilar-recorrido.webp',
   },
 ];
 
@@ -78,6 +81,7 @@ const pasos = [
     linea1="La seguridad"
     linea2="no ocurre por accidente."
     subtitulo="Modernizamos la seguridad ocupacional con instrumentos, no con diapositivas."
+    foto="/img/campo/hero-medicion-planta.webp"
     pideFoto="medición en planta con el instrumento en mano y la operación al fondo (docs/fotos.md, foto 1)"
     primario={{ href: '/agenda', texto: 'Agendar 30 minutos' }}
     secundario={{ href: '/contacto', texto: 'Cotizar' }}
@@ -121,7 +125,7 @@ const pasos = [
       <p class="intro">Cuando el reglamento nacional no cubre un parámetro, se declara la fuente supletoria utilizada y por qué aplica a ese caso.</p>
       <div class="grilla-servicios">
         {servicios.map((s) => (
-          <TarjetaServicio titulo={s.data.titulo} frase={s.data.frase} entregable={s.data.entregable} href={s.data.slug} pideFoto={s.data.foto} />
+          <TarjetaServicio titulo={s.data.titulo} frase={s.data.frase} entregable={s.data.entregable} href={s.data.slug} pideFoto={s.data.foto} foto={s.data.imagen} />
         ))}
       </div>
       <p class="enlace-final"><a href="/servicios">Ver todos los servicios</a></p>
