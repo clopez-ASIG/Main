@@ -1,62 +1,134 @@
 ---
 /* Cuadrante
-   Propósito: el instrumento con forma, como el Safety Loop de Krause Bell. Cada Calibración de Percepciones cierra con su cuadrante (Sello v3.1, 8.3).
-   Anatomía: matriz 2x2 con encabezados. Filas: lo que la gente percibe (acertada o errónea). Columnas: lo que pasa en la operación (procedimiento cumplido o incumplido). Al elegir una celda se lee qué significa.
-   Estados: sin script se ven las cuatro celdas con su nombre; con script, la elegida se pinta de amarillo y muestra su lectura.
-   Reglas: la lectura de cada celda la aprueba Christian antes de publicar. */
-import Pendiente from './Pendiente.astro';
-const celdas = [
-  { nombre: 'Acertada y cumplido', lectura: 'Lo que la gente cree coincide con lo que existe, y lo que existe se cumple.' },
-  { nombre: 'Acertada e incumplido', lectura: 'La gente ve con claridad que lo escrito no se cumple.' },
-  { nombre: 'Errónea y cumplido', lectura: 'El procedimiento se cumple, pero la gente no lo percibe así.' },
-  { nombre: 'Errónea e incumplido', lectura: 'Se cree que se cumple, y no se cumple.' },
-];
+   Propósito: el instrumento con forma. Cada Calibración de Percepciones cierra con su cuadrante (Sello v3.1, 8.3).
+   Anatomía: plano con dos ejes. Y: la percepción (errónea abajo, acertada arriba). X: la operación real (incumplido a la izquierda, cumplido a la derecha). Una retícula de mira cruza los ejes y se fija en un punto; el cuadrante donde cae se nombra en una frase corta.
+   Estados: al cargar, la mira barre el plano y se fija. El visitante la mueve con el puntero, con el dedo o con las flechas. Sin script queda fija en un punto.
+   Reglas: las lecturas son cortas a propósito; no explican cómo se interpreta un resultado (Christian, 23 nov 2026). */
+const lecturas = {
+  ac: 'Ven lo que existe.',
+  ai: 'Ven lo que falta.',
+  ec: 'No ven lo que existe.',
+  ei: 'Creen en lo que no existe.',
+};
 ---
-<div class="cuadrante" data-cuadrante>
-  <div class="cuadrante__tabla" role="group" aria-label="Cuadrante de la Calibración de Percepciones">
-    <span></span>
-    <span class="cuadrante__col">Procedimiento cumplido</span>
-    <span class="cuadrante__col">Procedimiento incumplido</span>
-    <span class="cuadrante__fila">Percepción acertada</span>
-    {celdas.slice(0, 2).map((c) => (
-      <button type="button" class="cuadrante__celda" data-lectura={c.lectura} aria-pressed="false">{c.nombre}</button>
-    ))}
-    <span class="cuadrante__fila">Percepción errónea</span>
-    {celdas.slice(2).map((c, i) => (
-      <button type="button" class="cuadrante__celda" data-lectura={c.lectura} aria-pressed={i === 1 ? 'true' : 'false'}>{c.nombre}</button>
-    ))}
+<div class="mira" data-mira data-lecturas={JSON.stringify(lecturas)}>
+  <div class="mira__plano" tabindex="0" role="slider" aria-label="Punto en el cuadrante: percepción y operación real" aria-valuetext={lecturas.ei} data-plano>
+    <span class="mira__cuadro mira__cuadro--ai"></span>
+    <span class="mira__cuadro mira__cuadro--ac"></span>
+    <span class="mira__cuadro mira__cuadro--ei"></span>
+    <span class="mira__cuadro mira__cuadro--ec"></span>
+    <span class="mira__linea mira__linea--x" data-lx></span>
+    <span class="mira__linea mira__linea--y" data-ly></span>
+    <span class="mira__punto" data-punto></span>
+    <span class="mira__eje mira__eje--y">Percepción</span>
+    <span class="mira__eje mira__eje--x">Operación real</span>
+    <span class="mira__extremo mira__extremo--arriba">acertada</span>
+    <span class="mira__extremo mira__extremo--abajo">errónea</span>
+    <span class="mira__extremo mira__extremo--izq">incumplido</span>
+    <span class="mira__extremo mira__extremo--der">cumplido</span>
   </div>
-  <p class="cuadrante__lectura" data-salida aria-live="polite">{celdas[3].lectura}</p>
-  <Pendiente texto="la lectura de cada celda la aprueba Christian." />
+  <p class="mira__lectura" data-salida aria-live="polite">{lecturas.ei}</p>
 </div>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-cuadrante]').forEach((raiz) => {
+  document.querySelectorAll<HTMLElement>('[data-mira]').forEach((raiz) => {
+    const plano = raiz.querySelector<HTMLElement>('[data-plano]')!;
     const salida = raiz.querySelector<HTMLElement>('[data-salida]')!;
-    raiz.querySelectorAll<HTMLButtonElement>('.cuadrante__celda').forEach((b) => {
-      b.addEventListener('click', () => {
-        raiz.querySelectorAll('.cuadrante__celda').forEach((o) => o.setAttribute('aria-pressed', 'false'));
-        b.setAttribute('aria-pressed', 'true');
-        salida.textContent = b.dataset.lectura ?? '';
-      });
+    const lecturas = JSON.parse(raiz.dataset.lecturas ?? '{}');
+    let x = 0.28, y = 0.72; // 0..1 desde la esquina superior izquierda
+
+    const pintar = () => {
+      raiz.style.setProperty('--x', `${x * 100}%`);
+      raiz.style.setProperty('--y', `${y * 100}%`);
+      const clave = (y < 0.5 ? 'a' : 'e') + (x < 0.5 ? 'i' : 'c');
+      raiz.dataset.cuadro = clave;
+      if (salida.textContent !== lecturas[clave]) salida.textContent = lecturas[clave];
+      plano.setAttribute('aria-valuetext', lecturas[clave]);
+    };
+
+    const desde = (e: PointerEvent) => {
+      const r = plano.getBoundingClientRect();
+      x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+      pintar();
+    };
+    let arrastrando = false;
+    plano.addEventListener('pointerdown', (e) => { arrastrando = true; plano.setPointerCapture(e.pointerId); raiz.classList.add('mira--fija'); desde(e); });
+    plano.addEventListener('pointermove', (e) => { if (arrastrando || e.pointerType === 'mouse') desde(e); });
+    plano.addEventListener('pointerup', () => { arrastrando = false; });
+    plano.addEventListener('keydown', (e) => {
+      const paso = 0.05;
+      if (e.key === 'ArrowLeft') x = Math.max(0, x - paso);
+      else if (e.key === 'ArrowRight') x = Math.min(1, x + paso);
+      else if (e.key === 'ArrowUp') y = Math.max(0, y - paso);
+      else if (e.key === 'ArrowDown') y = Math.min(1, y + paso);
+      else return;
+      e.preventDefault(); pintar();
     });
+
+    // Barrido al entrar en pantalla: la mira recorre el plano y se fija en un punto.
+    const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (quieto) { pintar(); return; }
+    const barrer = () => {
+      const t0 = performance.now(), dur = 2200;
+      const paso = (t: number) => {
+        if (raiz.classList.contains('mira--fija')) return;
+        const k = Math.min(1, (t - t0) / dur), s = 1 - Math.pow(1 - k, 3);
+        x = 0.85 - 0.57 * s + 0.12 * Math.sin(s * Math.PI * 2);
+        y = 0.15 + 0.57 * s + 0.1 * Math.cos(s * Math.PI * 1.5) - 0.1 * (1 - s);
+        pintar();
+        if (k < 1) requestAnimationFrame(paso); else raiz.classList.add('mira--fija');
+      };
+      requestAnimationFrame(paso);
+    };
+    pintar();
+    new IntersectionObserver((ent, obs) => { if (ent[0].isIntersecting) { obs.disconnect(); barrer(); } }, { threshold: 0.5 }).observe(plano);
   });
 </script>
 
 <style>
-  .cuadrante__tabla { display: grid; grid-template-columns: auto 1fr 1fr; gap: 4px; align-items: stretch; }
-  .cuadrante__col, .cuadrante__fila { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-14); color: var(--amarillo); line-height: 1.25; }
-  .cuadrante__col { padding: 0 var(--e-8) var(--e-8); }
-  .cuadrante__fila { display: flex; align-items: center; padding-right: var(--e-16); max-width: 11ch; }
-  .cuadrante__celda {
-    aspect-ratio: 1.4 / 1; cursor: pointer; text-align: left;
-    font-family: var(--f-cuerpo); font-size: var(--t-14); line-height: 1.35;
-    color: var(--borde); background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(159, 176, 196, 0.25); border-radius: 0;
-    padding: var(--e-16); display: flex; align-items: flex-end;
-    transition: background-color .2s ease, color .2s ease;
+  .mira { --x: 28%; --y: 72%; }
+  .mira__plano {
+    position: relative; aspect-ratio: 1 / 1; max-width: 520px; margin: var(--e-32) 0 0 var(--e-32);
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px;
+    cursor: crosshair; touch-action: none; user-select: none;
+    border-left: 3px solid var(--borde); border-bottom: 3px solid var(--borde);
   }
-  .cuadrante__celda:hover { background: rgba(255, 255, 255, 0.14); color: var(--blanco); }
-  .cuadrante__celda[aria-pressed='true'] { background: var(--amarillo); color: var(--navy); border-color: var(--amarillo); font-weight: 600; }
-  .cuadrante__lectura { font-family: var(--f-titulo); font-weight: 600; font-size: var(--t-22); line-height: 1.3; color: var(--blanco); margin: var(--e-24) 0 var(--e-8); min-height: 2.6em; }
+  .mira__plano:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 6px; }
+  .mira__cuadro { background: rgba(255, 255, 255, 0.05); transition: background-color .3s ease; }
+  .mira[data-cuadro='ai'] .mira__cuadro--ai,
+  .mira[data-cuadro='ac'] .mira__cuadro--ac,
+  .mira[data-cuadro='ei'] .mira__cuadro--ei,
+  .mira[data-cuadro='ec'] .mira__cuadro--ec { background: rgba(255, 216, 0, 0.16); }
+
+  .mira__linea { position: absolute; background: var(--amarillo); pointer-events: none; }
+  .mira__linea--x { left: 0; right: 0; top: var(--y); height: 1px; }
+  .mira__linea--y { top: 0; bottom: 0; left: var(--x); width: 1px; }
+  .mira__punto {
+    position: absolute; left: var(--x); top: var(--y); width: 18px; height: 18px; margin: -9px 0 0 -9px;
+    border-radius: 50%; background: var(--amarillo); pointer-events: none;
+    box-shadow: 0 0 0 6px rgba(255, 216, 0, 0.25);
+  }
+  .mira--fija .mira__punto::after {
+    content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 2px solid var(--amarillo);
+    animation: pulso 1.8s ease-out infinite;
+  }
+  @keyframes pulso { from { transform: scale(.6); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .mira--fija .mira__punto::after { animation: none; } }
+
+  .mira__eje { position: absolute; font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-14); color: var(--amarillo); white-space: nowrap; }
+  .mira__eje--y { left: 0; top: 50%; transform: translate(calc(-100% - 12px), -50%) rotate(-90deg) translateX(50%); transform-origin: right center; }
+  .mira__eje--x { left: 50%; bottom: 0; transform: translate(-50%, calc(100% + 28px)); }
+  .mira__extremo { position: absolute; font-size: var(--t-14); color: var(--gris-medio); white-space: nowrap; }
+  .mira__extremo--arriba { left: 0; top: 0; transform: translateX(calc(-100% - 10px)); }
+  .mira__extremo--abajo { left: 0; bottom: 0; transform: translateX(calc(-100% - 10px)); }
+  .mira__extremo--izq { left: 0; bottom: 0; transform: translateY(calc(100% + 6px)); }
+  .mira__extremo--der { right: 0; bottom: 0; transform: translateY(calc(100% + 6px)); }
+
+  .mira__lectura { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-28); line-height: 1.2; color: var(--blanco); margin: calc(var(--e-64) + var(--e-8)) 0 0; min-height: 1.3em; }
+
+  @media (max-width: 767px) {
+    .mira__plano { margin-left: var(--e-64); }
+    .mira__eje--y { display: none; }
+  }
 </style>
