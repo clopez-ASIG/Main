@@ -1,181 +1,235 @@
 ---
-import { getCollection } from 'astro:content';
+/* Inicio, versión 3 (docs/documentacion.md §7). Once secciones, una acción por sección.
+   Regla de copy: cada frase se entiende sin saber de seguridad ocupacional y sin conocer a ASIG.
+   El único contraste «no X, sino Y» de la página es el subtítulo del hero, textual de Christian. */
+import { getCollection, getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
-import Cifras from '../components/Cifras.astro';
-import Puertas from '../components/Puertas.astro';
+import CifrasNarra from '../components/CifrasNarra.astro';
+import Situaciones from '../components/Situaciones.astro';
+import Cursos from '../components/Cursos.astro';
 import Autodiagnostico from '../components/Autodiagnostico.astro';
-import Pilares from '../components/Pilares.astro';
+import FichaProveedor from '../components/FichaProveedor.astro';
 import TarjetaServicio from '../components/TarjetaServicio.astro';
-import Cuadrante from '../components/Cuadrante.astro';
-import Proceso from '../components/Proceso.astro';
-import BandaLogos from '../components/BandaLogos.astro';
 import FichaCaso from '../components/FichaCaso.astro';
 import TarjetaArticulo from '../components/TarjetaArticulo.astro';
 import Cierre from '../components/Cierre.astro';
 import Boton from '../components/Boton.astro';
 import Pendiente from '../components/Pendiente.astro';
 
-const servicios = (await getCollection('servicios')).sort((a, b) => a.data.orden - b.data.orden);
-const casoDestacado = (await getCollection('casos')).find((c) => c.data.destacado);
+const whatsapp = 'https://wa.me/50499068668';
+
+// Capacitaciones tiene sección propia; aquí van las otras cinco líneas.
+const servicios = (await getCollection('servicios'))
+  .filter((s) => !s.data.seccionPropia)
+  .sort((a, b) => a.data.orden - b.data.orden);
+const caso = (await getCollection('casos')).find((c) => c.data.destacado && c.data.aprobado);
 const articulos = (await getCollection('articulos'))
   .sort((a, b) => b.data.fecha.getTime() - a.data.fecha.getTime())
   .slice(0, 3);
 
-const puertas = [
+const formato = new Intl.NumberFormat('en-US');
+const valor = async (id: string) => formato.format((await getEntry('cifras', id))!.data.valor);
+const cultura = [
+  { numero: await valor('respuestas-cultura'), unidad: 'respuestas registradas' },
+  { numero: await valor('niveles-cultura'), unidad: 'grupos medidos: trabajadores y jefes' },
+  { numero: await valor('rubros-cultura'), unidad: 'sectores de industria' },
+];
+
+// Las siete salen de la prueba con visitantes (docs/prueba-visitantes-v8.md). Christian las confirma o edita (pendiente 19).
+const situaciones = [
   {
-    dice: 'Me pidieron resolver la seguridad y no sé por dónde empezar.',
-    respuesta: 'En 30 minutos revisamos con usted qué tiene, qué le falta y por dónde conviene empezar.',
-    href: '/diagnostico',
+    dice: 'Me pidieron un programa de salud y seguridad y no sé por dónde empezar.',
+    respuesta: 'En 30 minutos por videollamada revisamos con usted qué tiene, qué le falta y por dónde conviene empezar.',
+    href: '/#sesion',
     boton: 'Agendar 30 minutos',
+    ancha: true,
   },
   {
-    dice: 'Mi cliente me exige un programa de seguridad.',
-    respuesta: 'Envíenos el requisito que le pidieron. Le respondemos con una cotización el mismo día hábil.',
-    href: '/contacto',
-    boton: 'Cotizar',
+    dice: 'Tuve un accidente y no quiero que se repita.',
+    respuesta: 'Investigamos el accidente hasta la condición que lo hizo posible y le explicamos qué corregir.',
+    href: '/asesorias-en-higiene-y-seguridad',
+    boton: 'Ver cómo investigamos',
+  },
+  {
+    dice: 'Me piden trabajadores certificados en altura, espacios confinados, trabajo en caliente o bloqueo y etiquetado.',
+    respuesta: 'Envíenos por WhatsApp el requisito que le pidió su cliente. Le respondemos con una cotización el mismo día hábil.',
+    href: whatsapp,
+    boton: 'Cotizar por WhatsApp',
+  },
+  {
+    dice: 'Tengo que armar el plan de capacitación del trimestre.',
+    respuesta: 'En el catálogo encuentra cada curso con sus horas, la modalidad y la constancia que entrega.',
+    href: '/#cursos',
+    boton: 'Ver los cursos',
+  },
+  {
+    dice: 'Necesito tres cotizaciones para el viernes.',
+    respuesta: 'En la ficha del proveedor encuentra la razón social, el registro y el contacto de ASIG. Le enviamos la cotización el mismo día hábil.',
+    href: '/#ficha-del-proveedor',
+    boton: 'Ver la ficha del proveedor',
+  },
+  {
+    dice: 'Necesito una licencia ambiental y no sé qué categoría me toca.',
+    respuesta: 'Usted elige su actividad y su tamaño, y obtiene una categoría de referencia con lo que pide cada una.',
+    href: '/herramientas/categoria-ambiental',
+    boton: 'Calcular mi categoría',
   },
   {
     dice: 'Quiero conocer el método antes de recibirlos.',
-    respuesta: 'Cómo investigamos, medimos y verificamos, paso por paso y con las fuentes declaradas.',
+    respuesta: 'Cómo investigamos, medimos y verificamos que la corrección funcionó, paso por paso.',
     href: '/metodologia',
     boton: 'Ver el método',
+    ancha: true,
   },
 ];
 
-// Textos de los pilares 1 y 2: copy vigente de asighn.com, escrito por Christian. El 3 se pide a Madre.
-const pilares = [
-  {
-    nombre: 'Verificamos antes de enseñar',
-    texto: 'Cada contenido se prepara según el riesgo real de su operación, no un temario genérico. Lo que armamos se valida contra fuentes primarias: OSHA, NIOSH, ACGIH, NFPA.',
-    pideFoto: 'consulta de una norma o ficha técnica en sitio, junto al equipo que se va a medir',
-    foto: '/img/campo/pilar-lecturas-por-punto.webp',
-  },
-  {
-    nombre: 'Entrenamos con las manos',
-    texto: 'Prácticas reales, simulacros, realidad virtual y simuladores. Sus equipos comprenden el riesgo haciendo, sin cargarlos de teoría que no pueden aplicar.',
-    pideFoto: 'participante en el simulador o con el visor de realidad virtual',
-    foto: '/img/campo/pilar-manos.webp',
-  },
-  {
-    nombre: 'Cumplimiento no es prevención',
-    texto: '',
-    pideFoto: 'recorrido en planta, mirando la condición real y no el papel',
-    foto: '/img/campo/pilar-recorrido.webp',
-  },
-];
-
-const pasos = [
-  { nombre: 'Diagnóstico', frase: 'Entendemos su operación antes de proponer. No llegamos con conclusiones hechas.' },
-  { nombre: 'Medición', frase: 'Medimos con equipo calibrado y declaramos la fuente de cada parámetro.' },
-  { nombre: 'Hallazgo', frase: 'Cada hallazgo se entrega explicado: de dónde viene, qué efecto tiene y cómo corregirlo.' },
-  { nombre: 'Intervención', frase: 'La capacitación cubre lo que la condición no alcanza, diseñada con la realidad de su operación.' },
-  { nombre: 'Verificación', frase: 'Una nueva medición confirma que la corrección funcionó.' },
-];
+const sesion = [
+  ['Cómo es', 'Por videollamada'],
+  ['Cuánto dura', '30 minutos'],
+  ['Cuánto cuesta', 'No tiene costo'],
+  ['Con quién', 'Christian López, consultor principal de ASIG'],
+  ['Qué se lleva', 'Tres hallazgos sobre su operación y por dónde conviene empezar'],
+  ['Sus respuestas', 'No se guardan'],
+] as const;
 ---
 <Base
   titulo="ASIG Honduras | Seguridad ocupacional, ambiente y sistemas de gestión"
-  descripcion="Consultoría en seguridad ocupacional, higiene industrial medible y cultura de seguridad en Honduras. Instrumentos, no diapositivas."
+  descripcion="ASIG Honduras mide, investiga, capacita y acompaña a empresas en seguridad ocupacional y ambiente. Base en San Pedro Sula y cobertura a nivel nacional."
 >
+  <!-- 1. Hero -->
   <Hero
     linea1="La seguridad"
     linea2="no ocurre por accidente."
-    subtitulo="Modernizamos la seguridad ocupacional con instrumentos, no con diapositivas."
-    foto="/img/campo/hero-medicion-planta.webp"
-    pideFoto="medición en planta con el instrumento en mano y la operación al fondo (docs/fotos.md, foto 1)"
-    primario={{ href: '/agenda', texto: 'Agendar 30 minutos' }}
+    subtitulo="Seguridad basada en ciencia, no solo diapositivas."
+    llana="Medimos, investigamos, capacitamos y acompañamos a empresas de Honduras en seguridad ocupacional y ambiente."
+    foto="/img/campo/hero-medicion-planta-crop.webp"
+    posicionFoto="40% center"
+    pideFoto="medición en planta con la persona midiendo como centro de la foto (docs/fotos.md, foto 1)"
+    primario={{ href: '/#sesion', texto: 'Agendar 30 minutos' }}
     secundario={{ href: '/contacto', texto: 'Cotizar' }}
-  />
+  >
+    <Pendiente texto="la línea que dice qué hace ASIG es borrador; la aprueba Christian (pendiente 18)." />
+  </Hero>
 
-  <section class="banda-cifras">
+  <!-- 2. Cifras -->
+  <CifrasNarra />
+
+  <!-- 3. Situaciones -->
+  <section class="seccion" id="situaciones">
     <div class="contenedor">
-      <Cifras ids={['clientes', 'personas', 'areas', 'informes']} variante="banda" />
+      <h2 class="titulo-grande">¿Cómo podemos comenzar a ayudarlo?</h2>
+      <Pendiente texto="confirmar o editar las siete situaciones (pendiente 19)." />
+      <Situaciones situaciones={situaciones} />
     </div>
   </section>
 
-  <section class="seccion">
+  <!-- 4. Capacitaciones -->
+  <section class="seccion seccion--clara" id="cursos">
     <div class="contenedor">
-      <h2 class="titulo-grande">¿Por dónde empieza usted?</h2>
-      <Puertas puertas={puertas} />
+      <h2 class="titulo-grande">Cursos y certificaciones</h2>
+      <p class="intro">Cada curso se da en su planta o en la sede de ASIG. Los participantes practican con el equipo que van a usar en su trabajo y con simuladores, sin cargarlos de teoría que no van a aplicar.</p>
+      <Pendiente texto="lista real de cursos con horas, modalidad, cupo mínimo y constancia (pendiente 15). Los ocho nombres son los candidatos de la documentación; primeros auxilios tiene además una regla comercial abierta (primero Bomberos)." />
+      <Cursos />
+      <p class="cursos-constancia">Al terminar, ASIG entrega la constancia de certificación de cada participante.</p>
+      <Pendiente texto="qué dice la constancia y con qué respaldo (pendiente 15). El catálogo descargable en PDF se arma con la lista real." />
+      <div class="accion"><Boton href={whatsapp}>Cotizar un curso por WhatsApp</Boton></div>
     </div>
   </section>
 
-  <section class="seccion seccion--reticula">
-    <div class="contenedor dos-col">
-      <div>
-        <h2 class="titulo-grande">Cinco preguntas antes de llamarnos.</h2>
-        <p class="intro">Lo que una empresa en Honduras necesita tener resuelto, en cinco respuestas de sí o no. Cada “no” es un frente abierto.</p>
+  <!-- 5. Herramientas -->
+  <section class="seccion seccion--reticula" id="herramientas">
+    <div class="contenedor">
+      <h2 class="titulo-grande">Herramientas que puede usar hoy</h2>
+      <p class="intro">Cuatro herramientas que le sirven antes de hablar con nosotros.</p>
+      <div class="herramientas">
+        <Autodiagnostico />
+        <div class="herramientas__lista">
+          <article class="herramienta">
+            <h3>Calculadora de categoría de licencia ambiental</h3>
+            <p>Elija su actividad y su tamaño, y obtenga una categoría de referencia con lo que pide cada una. La categoría definitiva la asigna MIAMBIENTE, la Secretaría de Ambiente.</p>
+            <Pendiente texto="la calculadora se construye con la Tabla de Categorización que valide Christian (pendiente 16)." />
+            <p class="herramienta__enlace"><a href="/herramientas/categoria-ambiental">Abrir la calculadora</a></p>
+          </article>
+          <article class="herramienta">
+            <h3>Catálogo de cursos</h3>
+            <p>Todos los cursos con sus horas, la modalidad y la constancia que entregan, en un documento para reenviar.</p>
+            <p class="herramienta__enlace"><a href="/#cursos">Ver los cursos</a></p>
+          </article>
+          <article class="herramienta" id="ficha-del-proveedor">
+            <h3>Ficha del proveedor</h3>
+            <p>Los datos que compras y auditoría piden para registrar a ASIG como proveedor.</p>
+            <FichaProveedor />
+          </article>
+        </div>
       </div>
-      <Autodiagnostico />
     </div>
   </section>
 
-  <section class="seccion seccion--clara">
+  <!-- 6. Qué hacemos -->
+  <section class="seccion" id="servicios">
     <div class="contenedor">
-      <h2 class="titulo-grande">Que no nos necesiten para entender sus riesgos.</h2>
-      <p class="intro">Esa es la promesa. Tres pilares la sostienen.</p>
-      <Pendiente texto="documentacion.md (2 nov) dice que el pilar 3 no se imprime sin aprobación; el Sello v3.1 (15 nov) ya lo aprueba. Confirmar." />
-      <Pilares pilares={pilares} />
-    </div>
-  </section>
-
-  <section class="seccion">
-    <div class="contenedor">
-      <h2 class="titulo-grande">Cada servicio declara qué mide y contra qué fuente.</h2>
-      <p class="intro">Cuando el reglamento nacional no cubre un parámetro, se declara la fuente supletoria utilizada y por qué aplica a ese caso.</p>
+      <h2 class="titulo-grande">Qué hacemos</h2>
       <div class="grilla-servicios">
         {servicios.map((s) => (
-          <TarjetaServicio titulo={s.data.titulo} frase={s.data.frase} entregable={s.data.entregable} href={s.data.slug} pideFoto={s.data.foto} foto={s.data.imagen} />
+          <TarjetaServicio
+            titulo={s.data.titulo}
+            frase={s.data.frase}
+            entregable={s.data.entregable}
+            href={s.data.slug}
+            pideFoto={s.data.foto}
+            foto={s.data.imagen}
+            cifraId={s.data.cifraId}
+            cifraUnidad={s.data.cifraUnidad}
+          />
         ))}
       </div>
       <p class="enlace-final"><a href="/servicios">Ver todos los servicios</a></p>
     </div>
   </section>
 
-  <section class="seccion flagship">
-    <div class="contenedor flagship__grilla">
+  <!-- 7. Confianza -->
+  <section class="seccion seccion--clara" id="confianza">
+    <div class="contenedor confianza">
       <div>
-        <h2 class="titulo-grande">Detectamos el punto exacto de enfoque.</h2>
-        <p class="intro">Antes de aplicar el instrumento documentamos lo que su organización hace y escuchamos a los trabajadores. Después medimos en dos niveles, operativo y liderazgo, y leemos uno contra el otro: una brecha entre lo que existe y lo que se percibe es un hallazgo.</p>
-        <Cifras ids={['respuestas-cultura', 'niveles-cultura', 'rubros-cultura']} variante="navy" titulo="La medición de cultura en cifras" />
-        <div class="flagship__boton"><Boton href="/medicion-de-cultura" variante="amarillo">Conocer la Medición de Cultura</Boton></div>
+        <h2 class="titulo-grande">Con quién va a trabajar</h2>
+        <p class="confianza__quien">
+          Quien entrega el trabajo es Christian López, fundador y director de ASIG Honduras. Es colegiado C03967 del Colegio de Ingenieros Mecánicos, Electricistas y Químicos de Honduras (CIMEQH), Occupational Safety and Health Professional por OSHAcademy, auditor líder ISO y catedrático de educación continua en UNITEC.
+        </p>
+        <p>ASIG opera desde 2018, con base en San Pedro Sula y cobertura a nivel nacional.</p>
+        <Pendiente texto="confirmar qué credenciales van en esta línea y si lleva la colegiatura (pendiente 17)." />
+      </div>
+      <div class="confianza__prueba">
+        <Pendiente texto="logos de clientes: solo con autorización escrita de cada uno (pendiente 7). Sin lista, este bloque no se publica." />
+        {caso
+          ? <FichaCaso {...caso.data} />
+          : <Pendiente texto="un caso con sector y resultado en números; el texto lo aprueba Christian (pendiente 5)." />}
+        <p class="enlace-final"><a href="/clientes">Ver clientes y casos</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Medición de Cultura de Seguridad -->
+  <section class="seccion cultura" id="cultura">
+    <div class="contenedor cultura__grilla">
+      <div>
+        <h2 class="titulo-grande">Medición de Cultura de Seguridad</h2>
+        <p class="intro">Es un cuestionario propio de ASIG que aplicamos a trabajadores y a jefes. Con las respuestas comparamos lo que cada grupo cree sobre la seguridad con lo que pasa en la operación, y le mostramos dónde está la diferencia.</p>
+        <Boton href="/medicion-de-cultura" variante="amarillo">Conocer la Medición de Cultura</Boton>
       </div>
       <div>
-        <p class="flagship__nota">Lo que su gente percibe, contra lo que pasa en su operación. Mueva la mira.</p>
-        <Cuadrante />
+        <ul class="cultura__cifras">
+          {cultura.map((c) => <li><b>{c.numero}</b><span>{c.unidad}</span></li>)}
+        </ul>
+        <Pendiente texto="la cifra de 4 sectores viene del sitio actual y no está en el Sheet; confirmar." />
       </div>
     </div>
   </section>
 
-  <section class="seccion">
+  <!-- 9. Artículos -->
+  <section class="seccion" id="articulos">
     <div class="contenedor">
-      <h2 class="titulo-grande">Primero entendemos. Después medimos. Al final verificamos.</h2>
-      <Pendiente texto="nombres de los pasos del proceso en borrador (pendiente 3)." />
-      <Proceso pasos={pasos} />
-      <p class="enlace-final"><a href="/metodologia">Ver el método completo</a></p>
-    </div>
-  </section>
-
-  <section class="seccion seccion--clara">
-    <div class="contenedor">
-      <h2>Clientes atendidos</h2>
-      <BandaLogos logos={[]} />
-    </div>
-  </section>
-
-  {casoDestacado && (
-    <section class="seccion">
-      <div class="contenedor caso-envoltura">
-        <h2>Un caso de medición de cultura</h2>
-        <FichaCaso {...casoDestacado.data} />
-        <p class="enlace-final"><a href="/casos">Ver los casos</a></p>
-      </div>
-    </section>
-  )}
-
-  <section class="seccion seccion--reticula">
-    <div class="contenedor">
-      <h2 class="titulo-grande">Ideas que cuestionan las creencias heredadas</h2>
+      <h2 class="titulo-grande">Artículos recientes</h2>
       <div class="grilla-articulos">
         {articulos.map((a) => (
           <TarjetaArticulo
@@ -189,54 +243,94 @@ const pasos = [
           />
         ))}
       </div>
-      <p class="enlace-final enlace-final--navy"><a href="/articulos-y-novedades">Ver todos los artículos</a></p>
+      <p class="enlace-final"><a href="/articulos-y-novedades">Ver todos los artículos</a></p>
     </div>
   </section>
 
-  <Cierre frase="Respondemos el mismo día." boton={{ href: '/agenda', texto: 'Agendar 30 minutos' }} />
+  <!-- 10. La sesión de 30 minutos, definida una sola vez -->
+  <section class="seccion seccion--clara" id="sesion">
+    <div class="contenedor sesion">
+      <div>
+        <h2 class="titulo-grande">Qué es la sesión de 30 minutos</h2>
+        <p class="intro">Usted nos cuenta qué le pidieron o qué le preocupa. Le hacemos preguntas sobre su operación y le decimos qué encontramos y por dónde conviene empezar.</p>
+        <Boton href="/agenda">Agendar 30 minutos</Boton>
+        <Pendiente texto="disponibilidad para la página de reservas de Google Calendar (pendiente 12)." />
+      </div>
+      <dl class="sesion__datos">
+        {sesion.map(([etiqueta, dato]) => <div><dt>{etiqueta}</dt><dd>{dato}</dd></div>)}
+      </dl>
+    </div>
+  </section>
+
+  <!-- 11. Cierre -->
+  <div id="contacto">
+    <Cierre
+      frase="Respondemos el mismo día."
+      nota="En horario hábil, por teléfono, WhatsApp o correo."
+      boton={{ href: whatsapp, texto: 'Cotizar por WhatsApp' }}
+    />
+  </div>
 </Base>
 
 <style>
-  .titulo-grande { font-size: clamp(34px, 4.6vw, 60px); line-height: 1.05; letter-spacing: -0.02em; max-width: 20ch; margin-bottom: var(--e-24); }
-  .seccion--reticula .titulo-grande, .flagship .titulo-grande { color: var(--blanco); }
-  .seccion .intro { margin-bottom: var(--e-48); }
+  .titulo-grande { font-size: clamp(32px, 4.2vw, 52px); line-height: 1.08; letter-spacing: -0.02em; max-width: 22ch; margin-bottom: var(--e-24); }
+  .seccion--reticula .titulo-grande, .cultura .titulo-grande { color: var(--blanco); }
+  .seccion .intro { margin-bottom: var(--e-32); }
+  .accion { margin-top: var(--e-32); }
+  .enlace-final { margin-top: var(--e-32); font-weight: 700; font-family: var(--f-titulo); }
 
-  /* Banda de cifras: azul, cortada en diagonal arriba, como la cuña. */
-  .banda-cifras {
-    background: var(--azul);
-    padding: calc(var(--e-96) + var(--e-32)) 0 var(--e-96);
-    margin-top: calc(-1 * var(--e-64));
-    position: relative; z-index: 2;
-    clip-path: polygon(0 var(--e-64), 100% 0, 100% 100%, 0 100%);
-  }
+  .cursos-constancia { margin-top: var(--e-24); color: var(--texto); }
 
-  .dos-col { display: grid; grid-template-columns: 5fr 6fr; gap: var(--e-64); align-items: start; }
+  /* Herramientas: el autodiagnóstico a la izquierda, las otras tres a la derecha. */
+  .herramientas { display: grid; grid-template-columns: 6fr 5fr; gap: var(--e-24); align-items: start; }
+  .herramientas__lista { display: grid; gap: var(--e-24); }
+  .herramienta { background: var(--blanco); padding: var(--e-32); border-top: 6px solid var(--celeste); }
+  .herramienta h3 { font-size: var(--t-22); font-weight: 700; }
+  .herramienta p { color: var(--gris-texto); }
+  .herramienta__enlace { margin: var(--e-16) 0 0; font-family: var(--f-titulo); font-weight: 700; }
 
   .grilla-servicios { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); }
-  .seccion:not(.seccion--clara) .grilla-servicios :global(.servicio) { background: var(--fondo-claro); }
-  .grilla-articulos { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); margin-top: var(--e-16); }
-  .enlace-final { margin-top: var(--e-32); font-weight: 700; font-family: var(--f-titulo); }
-  .enlace-final--navy a { color: var(--amarillo); }
+  .grilla-servicios :global(.servicio) { background: var(--fondo-claro); }
+  .grilla-articulos { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-24); }
 
-  /* Flagship: navy con la franja diagonal del sitio actual. */
-  .flagship { position: relative; overflow: hidden; background: var(--navy); color: var(--blanco); }
-  .flagship::before {
+  .confianza { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-64); align-items: start; }
+  .confianza__quien { font-size: var(--t-18); color: var(--texto); }
+  .confianza__prueba :global(.caso) { margin-bottom: var(--e-16); }
+
+  /* Cultura: navy con la franja diagonal del sitio actual. */
+  .cultura { position: relative; overflow: hidden; background: var(--navy); color: var(--blanco); }
+  .cultura::before {
     content: ''; position: absolute; top: 0; bottom: 0; left: 8%; width: 46%;
     background: var(--azul); opacity: .35; clip-path: polygon(0 0, 62% 0, 100% 100%, 38% 100%);
   }
-  .flagship__grilla { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-64); align-items: center; }
-  .flagship .intro { color: var(--borde); }
-  .flagship__boton { margin-top: var(--e-48); }
-  .flagship__nota { font-family: var(--f-titulo); font-weight: 600; color: var(--borde); margin-bottom: var(--e-16); }
+  .cultura__grilla { position: relative; display: grid; grid-template-columns: 3fr 2fr; gap: var(--e-64); align-items: center; }
+  .cultura .intro { color: var(--borde); }
+  .cultura__cifras { list-style: none; margin: 0 0 var(--e-16); padding: 0; display: grid; gap: var(--e-24); }
+  .cultura__cifras li { display: flex; align-items: baseline; gap: var(--e-16); }
+  .cultura__cifras b { font-family: var(--f-titulo); font-weight: 800; font-size: clamp(36px, 4vw, 52px); line-height: 1; color: var(--verde); font-variant-numeric: lining-nums tabular-nums; min-width: 3.2ch; }
+  .cultura__cifras span { color: var(--borde); }
 
-  .caso-envoltura :global(.caso) { max-width: 880px; }
+  .sesion { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-64); align-items: start; }
+  .sesion__datos { margin: 0; background: var(--blanco); padding: var(--e-16) var(--e-32); border-top: 6px solid var(--amarillo); }
+  .sesion__datos div { display: grid; grid-template-columns: 140px 1fr; gap: var(--e-16); padding: var(--e-16) 0; border-bottom: 1px solid var(--borde); }
+  .sesion__datos div:last-child { border-bottom: 0; }
+  .sesion__datos dt { font-size: var(--t-14); color: var(--gris-secundario); }
+  .sesion__datos dd { margin: 0; font-family: var(--f-titulo); font-weight: 700; color: var(--navy); }
 
   @media (max-width: 1023px) {
     .grilla-servicios, .grilla-articulos { grid-template-columns: repeat(2, 1fr); }
-    .flagship__grilla, .dos-col { grid-template-columns: 1fr; gap: var(--e-48); }
+    .herramientas, .confianza, .cultura__grilla, .sesion { grid-template-columns: 1fr; gap: var(--e-32); }
   }
   @media (max-width: 767px) {
-    .grilla-servicios, .grilla-articulos { grid-template-columns: 1fr; }
-    .banda-cifras { margin-top: calc(-1 * var(--e-32)); clip-path: polygon(0 var(--e-32), 100% 0, 100% 100%, 0 100%); padding-top: var(--e-96); }
+    /* En móvil, servicios y artículos se recorren de lado con el dedo: la página queda más corta y la tarjeta siguiente asoma. Nada se mueve solo. */
+    .grilla-servicios, .grilla-articulos {
+      grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 84%;
+      overflow-x: auto; scroll-snap-type: x mandatory; gap: var(--e-16);
+      margin: 0 calc(-1 * var(--e-16)); padding: 0 var(--e-16) var(--e-16); scroll-padding-left: var(--e-16);
+    }
+    .grilla-servicios > :global(*), .grilla-articulos > :global(*) { scroll-snap-align: start; }
+    .herramienta { padding: var(--e-24); }
+    .sesion__datos { padding: var(--e-8) var(--e-24); }
+    .sesion__datos div { grid-template-columns: 1fr; gap: 0; }
   }
 </style>

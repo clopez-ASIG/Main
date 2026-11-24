@@ -1,0 +1,10 @@
+[
+  { "id": "altura", "orden": 1, "nombre": "Trabajo en altura", "confirmado": false },
+  { "id": "espacios-confinados", "orden": 2, "nombre": "Ingreso a espacios confinados", "confirmado": false },
+  { "id": "trabajo-en-caliente", "orden": 3, "nombre": "Trabajo en caliente", "confirmado": false },
+  { "id": "bloqueo-y-etiquetado", "orden": 4, "nombre": "Bloqueo y etiquetado de energías", "confirmado": false },
+  { "id": "primeros-auxilios", "orden": 5, "nombre": "Primeros auxilios", "confirmado": false },
+  { "id": "extintores", "orden": 6, "nombre": "Uso de extintores", "confirmado": false },
+  { "id": "manejo-defensivo", "orden": 7, "nombre": "Manejo defensivo", "confirmado": false },
+  { "id": "cultura-supervisores", "orden": 8, "nombre": "Cultura de seguridad para supervisores", "confirmado": false }
+]

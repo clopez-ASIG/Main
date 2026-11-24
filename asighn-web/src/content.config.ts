@@ -24,6 +24,9 @@ const servicios = defineCollection({
     slug: z.string(),
     foto: z.string(),
     imagen: z.string().optional(),
+    cifraId: z.string().optional(), // id en cifras.json: la cifra vive junto al servicio que la produjo
+    cifraUnidad: z.string().optional(),
+    seccionPropia: z.boolean().optional(),
   }),
 });
 
@@ -57,4 +60,21 @@ const articulos = defineCollection({
   }),
 });
 
-export const collections = { cifras, servicios, casos, articulos };
+// Cursos: alimenta la sección Capacitaciones del Inicio, la subpágina y el catálogo (implementation.md 3.7).
+// Horas, modalidad y constancia son opcionales hasta que Christian entregue la lista real (pendiente 15).
+const cursos = defineCollection({
+  loader: file('src/content/cursos.json'),
+  schema: z.object({
+    orden: z.number(),
+    nombre: z.string(),
+    paraQuien: z.string().optional(),
+    horas: z.number().optional(),
+    modalidad: z.string().optional(),
+    cupoMinimo: z.number().optional(),
+    constancia: z.string().optional(),
+    respaldo: z.string().optional(),
+    confirmado: z.boolean(),
+  }),
+});
+
+export const collections = { cifras, servicios, casos, articulos, cursos };

@@ -1,62 +1,95 @@
 ---
 /* Autodiagnostico
-   Propósito: la única interacción del Inicio. Cinco preguntas de sí o no sobre la operación del visitante y un resultado en una frase.
-   Anatomía: lista de preguntas con dos opciones cada una, resultado y botón Agendar.
-   Estados: sin script muestra las preguntas y el botón; con script calcula el resultado al responder.
-   Reglas: preguntas y lógica las aprueba Christian antes de publicar (pendiente 9). */
-import Boton from './Boton.astro';
+   Propósito: la interacción del Inicio. Cinco preguntas de sí o no sobre la operación del visitante, con resultado por pregunta (documentacion.md §7.5).
+   Anatomía: lista de preguntas con dos opciones cada una; debajo de cada «no», qué significa y qué pide la ley o la práctica; al final, por cuál conviene empezar y el enlace a la sesión.
+   Estados: sin script muestra las preguntas con su explicación y el enlace; con script la explicación aparece al responder «no».
+   Reglas: preguntas, textos y orden de prioridad los aprueba Christian antes de publicar (pendiente 9). Las respuestas no se guardan y se dice. */
 import Pendiente from './Pendiente.astro';
+// El orden de la lista es el orden de prioridad: el primer «no» es por donde conviene empezar (borrador, pendiente 9).
 const preguntas = [
-  '¿Su empresa tiene más de 10 empleados y una Comisión Mixta de Higiene y Seguridad registrada ante la Secretaría de Trabajo?',
-  '¿Sabe, por una medición con equipo calibrado, cuánto ruido, luz o calor reciben sus puestos de trabajo?',
-  '¿Cuando ocurre un accidente, la investigación llega hasta la condición que lo hizo posible y no se queda en el trabajador?',
-  '¿Sus contratistas llegan con la formación en sus trabajos de riesgo verificada antes de empezar?',
-  '¿Sabe si su gente ve la seguridad de la misma forma que su liderazgo?',
+  {
+    tema: 'la Comisión Mixta',
+    q: '¿Su empresa tiene una Comisión Mixta de Higiene y Seguridad registrada ante la Secretaría de Trabajo?',
+    ayuda: 'Es el grupo de representantes de la empresa y de los trabajadores que revisa la seguridad. Aplica a empresas con más de 10 empleados.',
+    no: 'Toda empresa con más de 10 empleados debe tener su Comisión Mixta y registrarla ante la Secretaría de Trabajo. Es una obligación legal.',
+  },
+  {
+    tema: 'la investigación de accidentes',
+    q: 'Cuando ocurre un accidente, ¿la investigación explica qué condición lo hizo posible, además de lo que hizo el trabajador?',
+    no: 'Si la investigación termina en el trabajador, la condición sigue ahí y el accidente puede repetirse con otra persona.',
+  },
+  {
+    tema: 'la formación de sus contratistas',
+    q: '¿Verifica la formación de sus contratistas en trabajos de riesgo antes de que empiecen?',
+    ayuda: 'Trabajo en altura, espacios confinados, trabajo en caliente, bloqueo y etiquetado.',
+    no: 'En estos trabajos un error puede costar una vida. Usted verifica la formación con la constancia de cada trabajador antes de dar el permiso de trabajo.',
+  },
+  {
+    tema: 'las mediciones en sus puestos de trabajo',
+    q: '¿Ha medido con equipo calibrado el ruido, la luz o el calor en sus puestos de trabajo?',
+    no: 'Sin una medición, usted no sabe si un puesto está dentro de los límites del reglamento. Medimos por punto de trabajo y le informamos cuáles pasan y cuáles no.',
+  },
+  {
+    tema: 'cómo ven la seguridad sus trabajadores y sus jefes',
+    q: '¿Sabe si sus trabajadores ven la seguridad igual que sus jefes?',
+    no: 'Cuando los dos grupos la ven distinto, lo que se decide arriba no llega igual al piso. Esa diferencia se puede medir con un cuestionario aplicado a ambos.',
+  },
 ];
 ---
 <div class="auto" data-auto>
   <h3>Cinco preguntas sobre su operación</h3>
-  <Pendiente texto="preguntas y lógica en borrador; las aprueba Christian antes de publicar." />
+  <p class="auto__nota">Responda sí o no. Sus respuestas no se guardan ni se envían.</p>
+  <Pendiente texto="preguntas, textos de cada resultado y orden de prioridad en borrador; los aprueba Christian (pendiente 9)." />
   <ol class="auto__lista">
-    {preguntas.map((q, i) => (
-      <li>
+    {preguntas.map((p, i) => (
+      <li data-pregunta data-tema={p.tema}>
         <fieldset>
-          <legend>{q}</legend>
+          <legend>{p.q}</legend>
+          {p.ayuda && <p class="auto__ayuda">{p.ayuda}</p>}
           <label><input type="radio" name={`p${i}`} value="si" /> Sí</label>
           <label><input type="radio" name={`p${i}`} value="no" /> No</label>
         </fieldset>
+        <p class="auto__no" data-no>{p.no}</p>
       </li>
     ))}
   </ol>
   <div class="auto__medidor" aria-hidden="true">
     {preguntas.map(() => <span data-segmento></span>)}
   </div>
-  <p class="auto__resultado" data-resultado aria-live="polite">Responda las cinco y el resultado aparece aquí.</p>
-  <Boton href="/diagnostico">Agendar 30 minutos</Boton>
+  <p class="auto__resultado" data-resultado aria-live="polite">Responda las cinco y aquí aparece por cuál conviene empezar.</p>
+  <p class="auto__enlace"><a href="/#sesion">Ver qué es la sesión de 30 minutos</a></p>
 </div>
 
 <script>
   const raiz = document.querySelector<HTMLElement>('[data-auto]');
   if (raiz) {
     const salida = raiz.querySelector<HTMLElement>('[data-resultado]')!;
-    const total = raiz.querySelectorAll('fieldset').length;
+    const items = [...raiz.querySelectorAll<HTMLElement>('[data-pregunta]')];
     const segmentos = raiz.querySelectorAll<HTMLElement>('[data-segmento]');
+    raiz.classList.add('auto--activo');
     raiz.addEventListener('change', () => {
-      const respondidas = raiz.querySelectorAll('input:checked');
-      const noes = [...respondidas].filter((r) => (r as HTMLInputElement).value === 'no').length;
-      segmentos.forEach((s, i) => { s.dataset.estado = i < noes ? 'abierto' : i < respondidas.length ? 'cubierto' : ''; });
-      if (respondidas.length < total) { salida.textContent = `Lleva ${respondidas.length} de ${total}.`; return; }
-      salida.textContent =
-        noes === 0 ? 'Su operación tiene la base. En 30 minutos revisamos con usted qué sigue.'
-        : noes <= 2 ? 'Tiene uno o dos frentes abiertos. En 30 minutos le decimos por cuál empezar.'
-        : 'Tiene varios frentes abiertos. Conviene ordenarlos antes de invertir, y esa ruta se arma en 30 minutos.';
+      const valores = items.map((li) => li.querySelector<HTMLInputElement>('input:checked')?.value ?? '');
+      items.forEach((li, i) => { li.dataset.respuesta = valores[i]; });
+      segmentos.forEach((s, i) => { s.dataset.estado = valores[i] === 'no' ? 'abierto' : valores[i] === 'si' ? 'cubierto' : ''; });
+      const respondidas = valores.filter(Boolean).length;
+      if (respondidas < items.length) { salida.textContent = `Lleva ${respondidas} de ${items.length}.`; return; }
+      const primero = items.find((li) => li.dataset.respuesta === 'no');
+      salida.textContent = primero
+        ? `Conviene empezar por ${primero.dataset.tema}. Debajo de cada “no” está qué significa.`
+        : 'Respondió sí a las cinco. La base está; en la sesión de 30 minutos revisamos con usted qué sigue.';
     });
   }
 </script>
 
 <style>
   .auto { background: var(--blanco); padding: var(--e-32); border-top: 6px solid var(--amarillo); }
-  .auto h3 { font-size: var(--t-22); font-weight: 700; }
+  .auto h3 { font-size: var(--t-22); font-weight: 700; margin-bottom: var(--e-8); }
+  .auto__nota { font-size: var(--t-14); color: var(--gris-secundario); }
+  .auto__ayuda { font-size: var(--t-14); color: var(--gris-secundario); margin: 0; }
+  .auto__no { margin: 0 0 var(--e-16); padding: var(--e-8) var(--e-16); border-left: 4px solid var(--amarillo); background: var(--fondo-claro); font-size: var(--t-14); color: var(--texto); }
+  .auto--activo .auto__no { display: none; }
+  .auto--activo [data-respuesta='no'] .auto__no { display: block; }
+  .auto__enlace { margin: 0; font-family: var(--f-titulo); font-weight: 700; }
   .auto__lista { list-style: none; margin: 0 0 var(--e-24); padding: 0; display: grid; gap: var(--e-8); }
   fieldset { border: 0; margin: 0; padding: 0 0 var(--e-8); border-bottom: 1px solid var(--relleno-suave); }
   legend { font-weight: 600; margin-bottom: 0; padding: 0; color: var(--texto); }
@@ -67,5 +100,5 @@ const preguntas = [
   .auto__medidor span { height: 12px; background: var(--relleno-suave); transition: background-color .25s ease; }
   .auto__medidor span[data-estado='cubierto'] { background: var(--azul); }
   .auto__medidor span[data-estado='abierto'] { background: var(--amarillo); }
-  .auto__resultado { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-18); color: var(--navy); min-height: 2.8em; }
+  .auto__resultado { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-18); color: var(--navy); min-height: 2.8em; margin-bottom: var(--e-8); }
 </style>

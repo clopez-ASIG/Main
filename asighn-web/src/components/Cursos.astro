@@ -1,0 +1,50 @@
+---
+/* Cursos
+   Propósito: el catálogo de capacitación con lo que el contratista y RRHH necesitan poder reenviar (documentacion.md §7.4; implementation.md 2.15).
+   Anatomía: una fila por curso: nombre, horas, modalidad y constancia que entrega. La misma fila sirve en el Inicio, en la subpágina y en el PDF.
+   Reglas: lee de la colección cursos. Un dato que falta se muestra como por confirmar; no se inventa (pendiente 15). */
+import { getCollection } from 'astro:content';
+interface Props { limite?: number }
+const { limite } = Astro.props;
+const todos = (await getCollection('cursos')).sort((a, b) => a.data.orden - b.data.orden);
+const cursos = limite ? todos.slice(0, limite) : todos;
+const falta = 'por confirmar';
+---
+<table class="cursos">
+  <thead>
+    <tr><th scope="col">Curso</th><th scope="col">Horas</th><th scope="col">Modalidad</th><th scope="col">Constancia que entrega</th></tr>
+  </thead>
+  <tbody>
+    {cursos.map((c) => (
+      <tr>
+        <th scope="row">{c.data.nombre}</th>
+        <td data-etiqueta="Horas" class:list={{ cursos__falta: !c.data.horas }}>{c.data.horas ? `${c.data.horas} horas` : falta}</td>
+        <td data-etiqueta="Modalidad" class:list={{ cursos__falta: !c.data.modalidad }}>{c.data.modalidad ?? falta}</td>
+        <td data-etiqueta="Constancia" class:list={{ cursos__falta: !c.data.constancia }}>{c.data.constancia ?? falta}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+<style>
+  .cursos { width: 100%; border-collapse: collapse; background: var(--blanco); }
+  .cursos th, .cursos td { text-align: left; padding: var(--e-16) var(--e-24); border-bottom: 1px solid var(--borde); vertical-align: top; }
+  .cursos thead th { font-family: var(--f-titulo); font-weight: 600; font-size: var(--t-14); color: var(--gris-secundario); background: var(--blanco); border-bottom: 2px solid var(--navy); }
+  .cursos tbody th { font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-18); color: var(--navy); }
+  .cursos td { color: var(--texto); }
+  .cursos .cursos__falta { color: var(--gris-medio); }
+  .cursos tbody tr:last-child th, .cursos tbody tr:last-child td { border-bottom: 0; }
+
+  @media (max-width: 767px) {
+    .cursos thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .cursos, .cursos tbody, .cursos tr, .cursos th, .cursos td { display: block; }
+    .cursos tr { padding: var(--e-16); border-bottom: 1px solid var(--borde); }
+    .cursos tbody tr:last-child { border-bottom: 0; }
+    .cursos th, .cursos td { padding: 0; border: 0; }
+    .cursos td { font-size: var(--t-14); }
+    .cursos td::before { content: attr(data-etiqueta) ': '; color: var(--gris-secundario); }
+    .cursos td.cursos__falta { display: none; } /* en móvil, un dato sin confirmar no ocupa línea */
+    .cursos tbody th { margin-bottom: 0; }
+    .cursos tbody th:not(:last-child) { margin-bottom: var(--e-8); }
+  }
+</style>

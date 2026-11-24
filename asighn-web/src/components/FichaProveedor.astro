@@ -1,0 +1,31 @@
+---
+/* FichaProveedor
+   Propósito: los datos que compras y auditoría necesitan para registrar a ASIG como proveedor, sin agendar (documentacion.md §7.5; implementation.md 2.16).
+   Anatomía: lista de datos en dos columnas y, cuando exista, el botón de descarga en PDF.
+   Reglas: cada dato sale de asig-canon/references/identidad.md. RTN y dirección solo si Christian decide que van (pendiente 17). */
+import Pendiente from './Pendiente.astro';
+const datos = [
+  ['Razón social', 'EHS Honduras S. de R.L.'],
+  ['Nombre comercial', 'ASIG Honduras'],
+  ['En operación desde', 'Julio de 2018'],
+  ['Registro ambiental', 'Prestador de Servicios Ambientales, registro MIAMBIENTE RI-688-07-2018'],
+  ['Base y cobertura', 'San Pedro Sula, con cobertura a nivel nacional'],
+  ['Contacto', '+504 9906-8668 · consultas@asighn.com'],
+] as const;
+---
+<div class="ficha">
+  <dl>
+    {datos.map(([etiqueta, valor]) => (
+      <div><dt>{etiqueta}</dt><dd>{valor}</dd></div>
+    ))}
+  </dl>
+  <Pendiente texto="qué más lleva la ficha: RTN, dirección, colegiatura de Christian (pendiente 17). La descarga en PDF se arma cuando esté decidido." />
+</div>
+
+<style>
+  .ficha dl { margin: 0 0 var(--e-16); display: grid; gap: 0; }
+  .ficha dl div { display: grid; grid-template-columns: 150px 1fr; gap: var(--e-16); padding: var(--e-8) 0; border-bottom: 1px solid var(--borde); }
+  .ficha dt { font-size: var(--t-14); color: var(--gris-secundario); }
+  .ficha dd { margin: 0; color: var(--texto); font-weight: 600; font-size: var(--t-14); }
+  @media (max-width: 767px) { .ficha dl div { grid-template-columns: 1fr; gap: 0; } }
+</style>

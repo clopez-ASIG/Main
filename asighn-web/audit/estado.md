@@ -34,3 +34,13 @@ npm run dev
 - El artifact «Rediseño asighn.com» (v8, publicado a las 19:17) va adelante de este código: el bloque narrativo de cifras, el título «¿Cómo podemos comenzar a ayudarlo?», la sesión de 30 minutos y el hero recortado sobre la persona no están en la rama. El Inicio se rehace con la versión 3; de la v8 se recupera lo que sirva desde el HTML publicado.
 - Assets de Christian en `docs/assets/`: `alternativas-cifras.html` (el archivo que él adjuntó) y `servicios-genspark.md` (resumen de la página de Genspark, no su copy literal).
 - Sin revisar todavía contra el canon: lo que la versión 3 heredó de la línea de Wix y que `audit/reglas.md` ya marcaba (pilar 3, logo blanco, nombrar clientes, cifra de estudios).
+
+## 23 nov, noche: Inicio rehecho con la versión 3 (artifact v9)
+
+- `src/pages/index.astro` con las once secciones de documentacion.md §7. Componentes nuevos: `CifrasNarra`, `Situaciones`, `Cursos`, `FichaProveedor`. Cambiados: `Autodiagnostico` (resultado por pregunta), `Hero` (línea llana y foto centrada en la persona), `TarjetaServicio` (oración completa y cifra junto al servicio), `Cabecera` (menú nuevo y WhatsApp en móvil), `Cierre`.
+- Colección `cursos` con los ocho candidatos de la documentación, sin horas, modalidad ni constancia (pendiente 15).
+- Raleway 300 y 800 alojadas para el bloque de cifras.
+- `tools/artifact.py` empaqueta el Inicio compilado como vista previa de una sola página; los enlaces a páginas que no existen llevan a una nota.
+- Revisado: `astro build` sin errores; 1440 y 390 px sin desborde de página; 14.9 pantallas en móvil (la v8 medía 16); un solo contraste «no X, sino Y» en el texto visible; sin siglas sin explicar; autodiagnóstico probado con respuestas mixtas.
+- No corrido: inspector de taste-skill (1b). Decisiones tomadas sin consulta, para que Christian las vea: el cierre lleva «Cotizar por WhatsApp» en vez de Agendar, porque el bloque de la sesión queda justo arriba; en móvil, servicios y artículos se recorren de lado; la cifra de estudios es 110 (cifras.json), no los 240 que mostraba la v8.
+- Siguen sin usarse en el Inicio, guardados para Metodología: `Pilares`, `Cuadrante`, `Proceso`, `Puertas`.

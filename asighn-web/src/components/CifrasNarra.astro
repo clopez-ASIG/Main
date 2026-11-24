@@ -1,0 +1,61 @@
+---
+/* CifrasNarra
+   Propósito: las cifras del Inicio dichas como una declaración, no como panel de estadísticas (documentacion.md §7.2 y §8, tratamiento C).
+   Anatomía: un solo párrafo grande sobre navy, Raleway 300, con cuatro cifras subrayadas en celeste dentro de la frase; debajo, una línea gris que dice de dónde salen.
+   Estados: el valor final va escrito en el HTML. Con script, cada número cuenta una vez desde cero al entrar en pantalla; con prefers-reduced-motion no hay contador.
+   Reglas: sin etiqueta arriba del párrafo. Todo número sale de src/content/cifras.json. */
+import { getEntry } from 'astro:content';
+const ids = ['clientes', 'personas', 'areas', 'informes'] as const;
+const [clientes, personas, areas, informes] = await Promise.all(ids.map((id) => getEntry('cifras', id)));
+const formato = new Intl.NumberFormat('en-US');
+const n = (e: typeof clientes) => ({ valor: e!.data.valor, texto: formato.format(e!.data.valor) });
+const c = n(clientes), p = n(personas), a = n(areas), i = n(informes);
+const corte = new Intl.DateTimeFormat('es-HN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(clientes!.data.corte));
+---
+<section class="seccion seccion--clara cifras-narra" id="cifras">
+  <div class="contenedor">
+    <div class="narra">
+      <h2 class="visually-hidden">ASIG en cifras</h2>
+      <p>
+        En <b data-n={c.valor}>{c.texto}</b> empresas hemos capacitado a <b data-n={p.valor}>{p.texto}</b> personas,
+        medido las condiciones de trabajo en <b data-n={a.valor}>{a.texto}</b> áreas
+        y entregado <b data-n={i.valor}>{i.texto}</b> estudios técnicos.
+      </p>
+      <p class="narra__pie">Contamos estas cifras en las listas de asistencia, en las mediciones con equipo calibrado y en los informes entregados a cada cliente. Corte al {corte}.</p>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    var s = document.getElementById('cifras');
+    if (!s || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var nums = s.querySelectorAll('b[data-n]');
+    var fmt = function (v) { return v.toLocaleString('en-US'); };
+    new IntersectionObserver(function (es, io) {
+      if (!es[0].isIntersecting) return;
+      io.disconnect();
+      nums.forEach(function (b) {
+        var fin = +b.dataset.n, t0 = null;
+        b.setAttribute('aria-label', fmt(fin));
+        function paso(t) {
+          if (!t0) t0 = t;
+          var k = Math.min((t - t0) / 1300, 1);
+          b.textContent = fmt(Math.round(fin * (1 - Math.pow(1 - k, 3))));
+          if (k < 1) requestAnimationFrame(paso);
+        }
+        requestAnimationFrame(paso);
+      });
+    }, { threshold: 0.4 }).observe(s);
+  })();
+</script>
+
+<style>
+  .cifras-narra { padding-top: var(--e-48); }
+  .narra { background: var(--navy); color: var(--blanco); padding: var(--e-64) var(--e-48); }
+  .narra p { font-family: var(--f-titulo); font-weight: 300; font-size: clamp(22px, 3.1vw, 36px); line-height: 1.4; max-width: 34ch; margin: 0; color: var(--blanco); }
+  .narra p b { font-weight: 800; color: var(--blanco); border-bottom: 3px solid var(--celeste); padding-bottom: 2px; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  .narra .narra__pie { margin-top: var(--e-24); font-family: var(--f-cuerpo); font-weight: 400; font-size: var(--t-14); color: var(--gris-medio); max-width: 62ch; line-height: 1.5; }
+  @media (max-width: 767px) { .narra { padding: var(--e-48) var(--e-24); } }
+</style>

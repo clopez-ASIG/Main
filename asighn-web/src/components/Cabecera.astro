@@ -1,13 +1,13 @@
 ---
 /* Cabecera
-   Propósito: identidad y menú. Seis destinos y el botón Agendar 30 min (documentacion.md §6).
-   Estados: escritorio en línea; móvil con menú plegable sin script (details/summary).
-   Reglas: Contacto no va aquí; vive en el pie y en el botón secundario del hero. */
+   Propósito: identidad y menú. Seis destinos y el botón Agendar 30 min (documentacion.md §6, versión 3).
+   Estados: escritorio en línea; móvil con menú plegable sin script (details/summary) y WhatsApp fijo en lugar del botón Agendar.
+   Reglas: Contacto no va en el menú de escritorio; vive en el pie, en el botón secundario del hero y, en móvil, como WhatsApp en la cabecera. */
 const enlaces = [
-  { href: '/metodologia', texto: 'Metodología' },
   { href: '/servicios', texto: 'Servicios' },
-  { href: '/medicion-de-cultura', texto: 'Cultura de Seguridad' },
-  { href: '/casos', texto: 'Casos' },
+  { href: '/capacitacionesyentrenamientos', texto: 'Capacitaciones' },
+  { href: '/herramientas', texto: 'Herramientas' },
+  { href: '/metodologia', texto: 'Metodología' },
   { href: '/clientes', texto: 'Clientes' },
   { href: '/articulos-y-novedades', texto: 'Artículos' },
 ];
@@ -24,16 +24,17 @@ const actual = Astro.url.pathname;
           <li><a href={e.href} aria-current={actual === e.href ? 'page' : undefined}>{e.texto}</a></li>
         ))}
       </ul>
-      <a class="cabecera__agendar" href="/agenda">Agendar 30 min</a>
+      <a class="cabecera__agendar" href="/#sesion">Agendar 30 min</a>
     </nav>
     <details class="cabecera__movil">
       <summary>Menú</summary>
       <ul>
         {enlaces.map((e) => <li><a href={e.href}>{e.texto}</a></li>)}
+        <li><a href="/#sesion">Agendar 30 minutos</a></li>
         <li><a href="/contacto">Contacto</a></li>
       </ul>
     </details>
-    <a class="cabecera__agendar cabecera__agendar--movil" href="/agenda">Agendar</a>
+    <a class="cabecera__agendar cabecera__agendar--movil" href="https://wa.me/50499068668">WhatsApp</a>
   </div>
 </header>
 

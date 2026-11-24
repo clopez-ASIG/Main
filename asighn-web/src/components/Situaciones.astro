@@ -1,0 +1,55 @@
+---
+/* Situaciones
+   Propósito: la entrada del Inicio. El visitante se reconoce en su propia frase y tiene una sola acción (documentacion.md §7.3; implementation.md 2.13).
+   Anatomía: grilla de paneles navy con la esquina amarilla; la frase del visitante entre comillas, una línea de respuesta y un botón.
+   Reglas: la frase va en primera persona del visitante. Una acción por situación. Si se suma o se quita una, se mantiene la forma. */
+import Boton from './Boton.astro';
+interface Situacion { dice: string; respuesta: string; href: string; boton: string; ancha?: boolean }
+interface Props { situaciones: Situacion[] }
+const { situaciones } = Astro.props;
+---
+<ul class="situaciones">
+  {situaciones.map((s) => (
+    <li class:list={['situaciones__item', { 'situaciones__item--ancha': s.ancha }]}>
+      <p class="situaciones__dice">“{s.dice}”</p>
+      <p class="situaciones__respuesta">{s.respuesta}</p>
+      <Boton href={s.href} variante="amarillo">{s.boton}</Boton>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .situaciones { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-16); }
+  .situaciones__item {
+    position: relative; background: var(--navy); color: var(--blanco);
+    padding: var(--e-48) var(--e-32) var(--e-32);
+    display: flex; flex-direction: column; align-items: flex-start;
+    transition: transform .2s ease;
+  }
+  .situaciones__item--ancha { grid-column: span 2; }
+  .situaciones__item::before {
+    content: ''; position: absolute; top: 0; right: 0; width: 72px; height: 72px;
+    background: var(--amarillo); clip-path: polygon(0 0, 100% 0, 100% 100%);
+    transition: width .2s ease, height .2s ease;
+  }
+  .situaciones__item:hover { transform: translateY(-4px); }
+  .situaciones__item:hover::before { width: 96px; height: 96px; }
+  .situaciones__dice {
+    font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-22); line-height: 1.2;
+    color: var(--blanco); margin-bottom: var(--e-16); max-width: 22ch; padding-right: var(--e-32);
+  }
+  .situaciones__item--ancha .situaciones__dice { font-size: var(--t-28); max-width: 24ch; }
+  .situaciones__respuesta { color: var(--borde); flex-grow: 1; margin-bottom: var(--e-24); max-width: 46ch; }
+
+  @media (max-width: 1023px) {
+    .situaciones { grid-template-columns: repeat(2, 1fr); }
+    .situaciones__item--ancha { grid-column: span 2; }
+  }
+  @media (max-width: 767px) {
+    .situaciones { grid-template-columns: 1fr; gap: var(--e-8); }
+    .situaciones__item, .situaciones__item--ancha { grid-column: auto; padding: var(--e-32) var(--e-24) var(--e-24); }
+    .situaciones__item::before { width: 48px; height: 48px; }
+    .situaciones__dice, .situaciones__item--ancha .situaciones__dice { font-size: var(--t-18); margin-bottom: var(--e-8); }
+    .situaciones__respuesta { margin-bottom: var(--e-16); }
+  }
+</style>

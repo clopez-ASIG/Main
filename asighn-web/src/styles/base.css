@@ -41,6 +41,9 @@ a:hover { color: var(--celeste); }
 .intro { font-size: var(--t-18); color: var(--gris-texto); }
 .seccion--navy .intro, .seccion--reticula .intro { color: var(--borde); }
 
+/* La cabecera es fija: un ancla no queda tapada por ella. */
+[id] { scroll-margin-top: 96px; }
+
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 @media (max-width: 767px) {

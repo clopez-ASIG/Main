@@ -1,10 +1,14 @@
 ---
 /* TarjetaServicio
    Propósito: un servicio en una frase específica y un entregable concreto.
-   Anatomía: foto propia en duotono navy con el título encima; abajo la frase y lo que el cliente recibe. Al pasar, la foto toma color y la cuña amarilla crece.
+   Anatomía: foto propia en duotono navy con el título encima; abajo la frase, lo que el cliente recibe como oración completa y, si aplica, la cifra de ese servicio. Al pasar, la foto toma color y la cuña amarilla crece.
    Reglas: sin icono genérico. La frase dice qué se mide o se hace, no adjetivos. */
-interface Props { titulo: string; frase: string; entregable: string; href: string; pideFoto: string; foto?: string }
-const { titulo, frase, entregable, href, pideFoto, foto } = Astro.props;
+import { getEntry } from 'astro:content';
+interface Props { titulo: string; frase: string; entregable: string; href: string; pideFoto: string; foto?: string; cifraId?: string; cifraUnidad?: string }
+const { titulo, frase, entregable, href, pideFoto, foto, cifraId, cifraUnidad } = Astro.props;
+// Tratamiento F: la cifra junto al servicio que la produjo. El número sale de cifras.json.
+const cifra = cifraId ? await getEntry('cifras', cifraId) : undefined;
+const numero = cifra ? new Intl.NumberFormat('en-US').format(cifra.data.valor) : undefined;
 ---
 <article class="servicio">
   <div class="servicio__foto" style={foto ? `--foto:url('${foto}')` : undefined}>
@@ -13,7 +17,8 @@ const { titulo, frase, entregable, href, pideFoto, foto } = Astro.props;
   </div>
   <div class="servicio__cuerpo">
     <p>{frase}</p>
-    <p class="servicio__recibe"><span>Usted recibe</span>{entregable}</p>
+    <p class="servicio__recibe">{entregable}</p>
+    {numero && <p class="servicio__cifra"><b>{numero}</b> {cifraUnidad ?? cifra?.data.unidad}</p>}
   </div>
 </article>
 
@@ -42,5 +47,7 @@ const { titulo, frase, entregable, href, pideFoto, foto } = Astro.props;
   .servicio__cuerpo { padding: var(--e-24) var(--e-24) var(--e-32); display: flex; flex-direction: column; gap: var(--e-16); flex-grow: 1; }
   .servicio__cuerpo p { margin: 0; color: var(--gris-texto); }
   .servicio__recibe { color: var(--texto) !important; margin-top: auto !important; }
-  .servicio__recibe span { display: block; font-family: var(--f-titulo); font-weight: 700; font-size: var(--t-14); color: var(--azul); margin-bottom: 2px; }
+  @media (max-width: 767px) { .servicio__foto { aspect-ratio: 5 / 2; } .servicio__cuerpo { padding: var(--e-16) var(--e-24) var(--e-24); } }
+  .servicio__cifra { display: flex; align-items: baseline; gap: var(--e-8); font-size: var(--t-14); color: var(--gris-secundario) !important; border-top: 1px solid var(--borde); padding-top: var(--e-16); }
+  .servicio__cifra b { font-family: var(--f-titulo); font-weight: 800; font-size: 30px; line-height: 1; color: var(--azul); font-variant-numeric: lining-nums tabular-nums; }
 </style>

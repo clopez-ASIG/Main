@@ -3,13 +3,14 @@
    Propósito: la oferta al final de la página, nunca arriba.
    Anatomía: banda amarilla a todo el ancho, una frase grande en navy, contacto y un botón navy.
    Reglas: una sola acción con peso. Contacto del bloque oficial del canon. */
-interface Props { frase: string; boton: { href: string; texto: string } }
-const { frase, boton } = Astro.props;
+interface Props { frase: string; nota?: string; boton: { href: string; texto: string } }
+const { frase, nota, boton } = Astro.props;
 ---
 <section class="cierre">
   <div class="contenedor cierre__fila">
     <div>
       <h2>{frase}</h2>
+      {nota && <p class="cierre__nota">{nota}</p>}
       <p>
         <a href="tel:+50499068668">+504 9906-8668</a>
         <a href="https://wa.me/50499068668">WhatsApp</a>
@@ -25,6 +26,7 @@ const { frase, boton } = Astro.props;
   .cierre__fila { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--e-32); flex-wrap: wrap; }
   .cierre h2 { color: var(--navy); font-size: clamp(36px, 5.5vw, 72px); line-height: 1; letter-spacing: -0.02em; margin-bottom: var(--e-24); max-width: 12ch; }
   .cierre p { margin: 0; display: flex; gap: var(--e-24); flex-wrap: wrap; font-weight: 600; }
+  .cierre .cierre__nota { display: block; font-weight: 400; font-size: var(--t-18); margin-bottom: var(--e-16); }
   .cierre a:not(.cierre__boton) { color: var(--navy); }
   .cierre__boton {
     background: var(--navy); color: var(--blanco); text-decoration: none; font-family: var(--f-titulo); font-weight: 700;
