@@ -1,6 +1,6 @@
 # Implementation — Rediseño de asighn.com fuera de Wix
 
-**Para Claude Code. Versión 2 · 2 nov 2026.** Reemplaza la versión 1 (27 oct), que era para Wix + Velo.
+**Para Claude Code. Versión 2 · 2 nov 2026.** Reemplaza la versión 1 (27 oct), que era para Wix + Velo. **Versión 3 · 23 nov 2026:** suma lo que salió de la prueba con cinco visitantes: el contador de cifras en 1b.4, los componentes 2.13 a 2.16, las colecciones 3.7 y 3.8, y la prueba con visitantes por rol como gate del paso 4.
 Regla del método: cada paso termina con revisión y pulido antes de abrir el siguiente. No se construye la página siguiente con la anterior a medias. Al cerrar cada paso, capturas en escritorio y móvil para que Christian apruebe.
 
 Lo que manda sobre este archivo: `documentacion.md` (dirección), `asig-canon` (datos y marca), `voz-de-asig` (copy). Si algo acá choca con eso, gana eso y se reporta.
@@ -69,7 +69,7 @@ Para qué se usa acá: darle a Claude Code un juez externo para la dirección de
 1b.3 **La cosa viva.** La skill exige una interacción hecha del contenido real. Para ASIG: un autodiagnóstico de cinco preguntas en el Inicio que termina en «Agendar 30 minutos». Preguntas y lógica las aprueba Christian antes de construirlo. Es un componente con el script mínimo; sin script muestra las preguntas y el botón Agendar. Funciona con el pulgar y no bloquea la lectura.
 
 1b.4 Dos salvedades que mandan sobre la skill:
-- **Movimiento.** La skill exige ocho o más elementos en movimiento y falla la página con menos. Acá el techo lo pone `documentacion.md` §10: entradas discretas de sección (opacidad y 16–32 px) y feedback en controles, nada más. Sin parallax, sin carruseles, sin contador de cifras. Si el inspector falla por eso, pasar `--allow` para esa regla y anotarlo en el reporte.
+- **Movimiento.** La skill exige ocho o más elementos en movimiento y falla la página con menos. Acá el techo lo pone `documentacion.md` §10: entradas discretas de sección (opacidad y 16–32 px), feedback en controles, y el contador del bloque de cifras del Inicio (solo el número, una vez, con fallback sin script y sin movimiento bajo `prefers-reduced-motion`; ver `documentacion.md` §7). Sin parallax, sin carruseles. Si el inspector falla por eso, pasar `--allow` para esa regla y anotarlo en el reporte.
 - **Imágenes de archivos abiertos.** La skill busca fotos en Wikimedia/Openverse cuando no hay propias. ASIG tiene archivo propio; no se usa ninguna foto externa. Si una página se queda sin foto, se le pide a Christian, no se busca afuera.
 
 1b.5 Las reglas de la casa de la skill que coinciden con las nuestras se adoptan tal cual y el inspector las mide: sin gradientes, sin sombras en reposo, sin iconos sobre tarjetas, sin eyebrows, sin etiquetas pequeñas en mayúsculas, sin hairlines, sin numeración 01/02/03, titulares de dos líneas máximo, márgenes iguales, un `h1` claro por página, dos tipografías máximo. El proceso se muestra por posición y por el verbo de cada paso, en `<ol>` semántico sin número visible.
@@ -91,7 +91,11 @@ Un archivo por componente en `src/components/`, cada uno con un comentario de ca
 2.9 `BandaLogos` — monocromo, grilla estática, 4–6 por fila.
 2.10 `Cierre` — banda navy con una frase, contacto y un botón.
 2.11 `Formulario` — HubSpot incrustado con los estilos del sitio: nombre, empresa, correo, teléfono, necesidad. Cada envío entra al CRM y avisa a consultas@asighn.com. Confirmación en pantalla: «Respondemos el mismo día en horario hábil». Si el script de HubSpot no carga, el bloque muestra correo y WhatsApp.
-2.12 `Cabecera` y `Pie` — menú con botón «Agendar 30 min»; pie con teléfono, WhatsApp, correos, LinkedIn de la empresa, legal.
+2.12 `Cabecera` y `Pie` — menú con botón «Agendar 30 min»; en móvil, WhatsApp fijo en la cabecera; pie con teléfono, WhatsApp, correos, LinkedIn de la empresa, legal.
+2.13 `Situacion` (v3) — entrada de la grilla «¿Cómo podemos comenzar a ayudarlo?»: frase en primera persona del visitante entre comillas, una línea de respuesta, un botón. Siete por página en Inicio.
+2.14 `CalculadoraCategoria` (v3) — dos selectores (actividad, magnitud) o un selector y un campo numérico según la actividad; resultado con categoría, qué implica y botón; aviso fijo de «resultado de referencia» arriba del resultado, no abajo; fallback sin script con la tabla completa; lee de la colección `categorias`. Es la segunda «cosa viva» del sitio; taste-skill pide una por página, así que vive en su página propia y en Sostenibilidad, no en el Inicio junto al autodiagnóstico (en Inicio solo se enlaza).
+2.15 `Curso` (v3) — fila de catálogo: nombre, horas, modalidad, constancia. Lee de la colección `cursos`; misma fila en la sección del Inicio, en la subpágina y en el PDF.
+2.16 `FichaProveedor` (v3) — bloque de datos del proveedor con los campos que Christian apruebe (pendiente 17) y botón de descarga PDF.
 
 **Revisión:** `/_componentes` con todos los componentes en escritorio y 390 px. Christian aprueba antes de armar la primera página. Esto es lo que evita rehacer todo después.
 
@@ -105,14 +109,16 @@ Definidas en la configuración de contenido de Astro, cada una con su esquema:
 3.4 `clientes` — nombre, logo monocromo, orden. Solo los autorizados.
 3.5 `cifras.json` — indicador, valor, fecha de corte. Una entrada por indicador, cargada desde el Sheet. Todo número del sitio se lee de acá.
 3.6 `articulos` — reemplaza Wix Blog. Título, fecha, portada, resumen, cuerpo, autor visible si es en primera persona de Christian, y campo opcional `descarga` (archivo en `public/descargas/`) que absorbe la página Descargas. Se llena con lo rescatado en 0.3.
+3.7 `cursos` (v3) — nombre, a quién va, horas, modalidad, cupo mínimo, constancia que entrega, respaldo, orden. Alimenta la sección Capacitaciones del Inicio, la subpágina y el catálogo PDF. Datos de Christian (pendiente 15).
+3.8 `categorias` (v3) — actividad (nombre llano), grupo, magnitud aplicable, umbrales, categoría, quién emite, qué pide, plazo aproximado, nota. Se carga desde `src/content/categorias.json`, validado por Christian (pendiente 16). Alimenta la calculadora. Si el JSON no existe, la calculadora no se construye: no se inventan umbrales.
 
 **Revisión:** `astro build` sin errores, datos iniciales cargados, los artículos rescatados se ven completos en una lista de prueba con sus imágenes.
 
 ## Paso 4 — Inicio
 
-Construir las diez secciones de `documentacion.md` §7 en orden, con los componentes del paso 2. Copy final escrito con `voz-de-asig` (prueba final de la skill antes de darlo por bueno). Cifras, logos y caso destacado desde las colecciones.
+Construir las once secciones de `documentacion.md` §7 (v3) en orden, con los componentes del paso 2. Antes de escribir copy, leer `prueba-visitantes-v8.md`: ahí está qué frases entendió cada visitante y cuáles no. Cada frase pasa el test de la regla de copy (§5) antes de entrar. Copy final escrito con `voz-de-asig` (prueba final de la skill antes de darlo por bueno). Cifras, logos y caso destacado desde las colecciones.
 
-**Revisión:** 0 FAIL en `inspect.mjs` (1440/768/390) sobre la página real y crítica escrita según `references/critique.md` de la skill; capturas en escritorio y móvil. Prueba de los tres caminos de `documentacion.md` §9 desde el Inicio. Christian aprueba. Pulir. Solo entonces, paso 5. El mismo gate (inspector → crítica → capturas → aprobación) aplica a cada página de los pasos 5 a 8.
+**Revisión:** 0 FAIL en `inspect.mjs` (1440/768/390) sobre la página real y crítica escrita según `references/critique.md` de la skill; capturas en escritorio y móvil. Prueba de los tres caminos de `documentacion.md` §9 desde el Inicio. **Prueba con visitantes por rol** (v3): cinco agentes independientes, uno por rol de `prueba-visitantes-v8.md` (encargado de seguridad sin formación, contratista de obra civil, analista de compras, gerente de producción con accidente reciente, analista de RRHH con plan de capacitación), recorren la página sin conocer la documentación y reportan si la página les resuelve lo que traen; se repite hasta que al menos cuatro de cinco actúan. Christian aprueba. Pulir. Solo entonces, paso 5. El mismo gate (inspector → crítica → visitantes → capturas → aprobación) aplica a cada página de los pasos 5 a 8.
 
 ## Paso 5 — Metodología
 

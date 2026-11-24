@@ -26,3 +26,11 @@ cd asighn-web
 npm install
 npm run dev
 ```
+
+## 23 nov, noche: se unen las dos líneas de documentos
+
+- `docs/documentacion.md` y `docs/implementation.md` pasan a versión 3: la plataforma de la v2 del 2 nov (Astro) más el contenido de la v2 del 23 nov, que se había escrito sobre la línea vieja de Wix + Velo. Los pendientes nuevos de esa versión quedaron numerados 14 a 19.
+- Entra `docs/prueba-visitantes-v8.md`.
+- El artifact «Rediseño asighn.com» (v8, publicado a las 19:17) va adelante de este código: el bloque narrativo de cifras, el título «¿Cómo podemos comenzar a ayudarlo?», la sesión de 30 minutos y el hero recortado sobre la persona no están en la rama. El Inicio se rehace con la versión 3; de la v8 se recupera lo que sirva desde el HTML publicado.
+- Assets de Christian en `docs/assets/`: `alternativas-cifras.html` (el archivo que él adjuntó) y `servicios-genspark.md` (resumen de la página de Genspark, no su copy literal).
+- Sin revisar todavía contra el canon: lo que la versión 3 heredó de la línea de Wix y que `audit/reglas.md` ya marcaba (pilar 3, logo blanco, nombrar clientes, cifra de estudios).
